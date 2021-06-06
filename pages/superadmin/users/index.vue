@@ -309,7 +309,7 @@ export default {
           <i class="fe-users text-warning" v-if="!data.leaf"></i>
           <i class="fe-user text-success" v-else></i>
           <i class="ri-alarm-warning-fill text-danger" v-if="data.role==='client_superadmin'"></i>
-          {{ node.label }}(#{{ data.id }})
+          {{ node.label }}(#{{ data.user_id }})
         </span>
         <span>
 <!--            <el-button-->
@@ -331,7 +331,7 @@ export default {
       <div class="col-md-6 col-xs-12" v-if="user_selected">
         <div class="card">
           <div class="card-body">
-            <h6>User Selected:{{ user.username }}({{ user.id }})</h6>
+            <h6>User Selected:{{ user.username }}</h6>
             <div class="d-flex justify-content-between">
               <b-button variant="danger" @click="remove_user(user.id,user.username)">Delete</b-button>
               <b-button variant="primary" @click="user_moveto(user.id,user.username)">MoveTo</b-button>
