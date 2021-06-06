@@ -1,74 +1,75 @@
 <script>
 import {
-    required,
-    email
+  required,
+  email
 } from "vuelidate/lib/validators";
 
 /**
  * Login component
  */
 export default {
-  name:"auth_login",
-    data() {
-        return {
-            email: "huhaiguang@me.com",
-            password: "lionhu",
-            submitted: false,
-            authError: null,
-            tryingToLogIn: false,
-            isAuthError: false,
-        };
+  name: "auth_login",
+  data() {
+    return {
+      email: "huhaiguang@me.com",
+      password: "lionhu",
+      submitted: false,
+      authError: null,
+      tryingToLogIn: false,
+      isAuthError: false,
+    };
+  },
+  computed: {
+    notification() {
+      return this.$store ? this.$store.state.notification : null;
     },
-    computed: {
-        notification() {
-            return this.$store ? this.$store.state.notification : null;
-        },
-        notificationAutoCloseDuration() {
-            return this.$store && this.$store.state.notification ? 5 : 0;
-        },
+    notificationAutoCloseDuration() {
+      return this.$store && this.$store.state.notification ? 5 : 0;
     },
-    created() {},
-    validations: {
-        email: {
-            required,
-            email
-        },
-        password: {
-            required
-        },
+  },
+  created() {
+  },
+  validations: {
+    email: {
+      required,
+      email
     },
-    methods: {
-        // Try to log the user in with the username
-        // and password they provided.
-        tryToLogIn() {
-            this.submitted = true;
-            this.$v.$touch();
-            if (this.$v.$invalid) {
-                return;
-            } else {
-              const {
-                email,
-                password
-              } = this;
-              if (email && password) {
-                this.$store.dispatch('auth/login', {
-                  email,
-                  password
-                }).then((user)=>{
-                  if(user.role !==undefined && user.role !==""){
-                                     this.$router.push(
-                    this.$route.query.redirectFrom || {
-                      path: `/${user.role}/`
-                    }
-                  );
-                  }
-                });
-                this.$store.dispatch('notification/clear')
-              }
+    password: {
+      required
+    },
+  },
+  methods: {
+    // Try to log the user in with the username
+    // and password they provided.
+    tryToLogIn() {
+      this.submitted = true;
+      this.$v.$touch();
+      if (this.$v.$invalid) {
+        return;
+      } else {
+        const {
+          email,
+          password
+        } = this;
+        if (email && password) {
+          this.$store.dispatch('auth/login', {
+            email,
+            password
+          }).then((user) => {
+            if (user.role !== undefined && user.role !== "") {
+              this.$router.push(
+                this.$route.query.redirectFrom || {
+                  path: `/${user.role}/`
+                }
+              );
             }
-        },
+          });
+          this.$store.dispatch('notification/clear')
+        }
+      }
     },
-    layout: 'auth'
+  },
+  layout: 'auth'
 }
 </script>
 
@@ -76,19 +77,19 @@ export default {
   <div>
     <!-- Logo -->
     <div class="auth-brand text-center text-lg-left">
-        <div class="auth-logo">
-            <nuxt-link to="/" class="logo logo-dark text-center">
+      <div class="auth-logo">
+        <nuxt-link to="/" class="logo logo-dark text-center">
                 <span class="logo-lg">
-                    <img src="~/assets/images/logo-dark.png" alt height="22" />
+                    <img src="~/assets/images/logo-dark.png" alt height="22"/>
                 </span>
-            </nuxt-link>
+        </nuxt-link>
 
-            <nuxt-link to="/" class="logo logo-light text-center">
+        <nuxt-link to="/" class="logo logo-light text-center">
                 <span class="logo-lg">
-                    <img src="~/assets/images/logo-light.png" alt height="22" />
+                    <img src="~/assets/images/logo-light.png" alt height="22"/>
                 </span>
-            </nuxt-link>
-        </div>
+        </nuxt-link>
+      </div>
     </div>
     <!-- title-->
     <h4 class="mt-0">Sign In</h4>
@@ -142,15 +143,15 @@ export default {
     </form>
 
     <footer class="footer footer-alt">
-        <p class="text-muted">
-            Don't have an account?
-            <nuxt-link to="/account/register" class="text-primary ml-1">
-                <b>Sign Up</b>
-            </nuxt-link>
-        </p>
+      <p class="text-muted">
+        Don't have an account?
+        <nuxt-link to="/account/register" class="text-primary ml-1">
+          <b>Sign Up</b>
+        </nuxt-link>
+      </p>
     </footer>
 
   </div>
 
-<!-- end row -->
+  <!-- end row -->
 </template>

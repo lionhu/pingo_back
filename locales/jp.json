@@ -158,7 +158,8 @@
         "client_superadmin": "総代理店",
         "client_admin": "代理店",
         "level_1": "父親",
-        "level_2": "祖父"
+        "level_2": "祖父",
+        "user_self": "本人"
       },
       "follower": {
         "title": "フォロワー",

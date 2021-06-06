@@ -87,7 +87,8 @@ export default {
             client_superadmin: 0,
             client_admin: 0,
             level_2: 0,
-            level_1: 0
+            level_1: 0,
+            user_self:0
           }
         },
       },
@@ -648,6 +649,12 @@ export default {
                             variation.point_rule.policies.level_1|currency("¥")
                           }}
                         </li>
+                        <li>
+                          <span
+                            class="inline-block text-right mr-3">{{$t("menuitems.organizations.user.user_self")}}:</span>{{
+                            variation.point_rule.policies.user_self|currency("¥")
+                          }}
+                        </li>
                       </ul>
                     </td>
                     <td class="align-items-center">
@@ -800,6 +807,23 @@ export default {
                      :placeholder="edit_variation.point_rule.policies.level_1"/>
 
               <div v-if="submitted && !$v.edit_variation.point_rule.policies.level_1.required" class="invalid-feedback">
+                This value is required.
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="row">
+          <div class="col-md-6">
+            <div class="form-group">
+              <label for="field-user_self" class="control-label">{{$t("menuitems.organizations.user.user_self")}}
+                <span class="text-danger">*</span>
+              </label>
+              <input type="number" id="field-user_self" v-model="edit_variation.point_rule.policies.user_self"
+                     class="form-control"
+                     :class="{ 'is-invalid': submitted && $v.edit_variation.point_rule.policies.user_self.$error }"
+                     :placeholder="edit_variation.point_rule.policies.user_self"/>
+
+              <div v-if="submitted && !$v.edit_variation.point_rule.policies.user_self.required" class="invalid-feedback">
                 This value is required.
               </div>
             </div>

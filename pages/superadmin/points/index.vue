@@ -46,6 +46,7 @@ export default {
       type_options: [
         {label: "すべて", value: "ALL"},
         {label: "入会賞", value: "INTRODUCE_POINT"},
+        {label: '購入取得ボーナス', value: 'OrderBonus'},
         {label: "紹介購入賞", value: "DesendentOrderPoint"},
         {label: "商品購入利用", value: "PURCHASE_ORDER"},
         {label: "贈呈", value: "TRANSFER"},
@@ -317,7 +318,8 @@ export default {
                      <i :class="{'ri-user-voice-fill text-danger':scope.row.info.level==='SUPERADMIN',
                                   'ri-team-fill  text-warning':scope.row.info.level==='CLIENTADMIN',
                                   'ri-user-heart-line  text-primary':scope.row.info.level==='LEVEL_1',
-                                  'ri-parent-fill  text-success':scope.row.info.level==='LEVEL_2',}"></i>
+                                  'ri-parent-fill  text-success':scope.row.info.level==='LEVEL_2',
+                                  'ri-coin-fill  text-success':scope.row.info.level==='USER_SELF',}"></i>
                    </template>
                 </el-table-column>
                 <el-table-column
@@ -339,6 +341,17 @@ export default {
                         }}-{{ scope.row.info.orderitem_id }}
                       </nuxt-link>
                     </div>
+
+
+                    <div v-if="scope.row.type=='OrderBonus'"><nuxt-link :to="'/superadmin/orders/' + scope.row.info.order_id" class="action-iconk">
+                        <i
+                          class="fas fa-shopping-cart"></i>&nbsp;&nbsp;#{{
+                          scope.row.info.order_id
+                        }}-{{ scope.row.info.orderitem_id }}
+                      </nuxt-link>
+                    </div>
+
+
                     <div v-if="scope.row.type=='INTRODUCE_POINT'">
                       <i class="fas fa-street-view"></i>&nbsp;&nbsp;{{ scope.row.info.username }}
                     </div>
