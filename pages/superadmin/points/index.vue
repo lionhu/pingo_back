@@ -351,9 +351,21 @@ export default {
                       </nuxt-link>
                     </div>
 
+                    <div v-if="scope.row.type=='PURCHASE_ORDER'"><nuxt-link :to="'/superadmin/orders/' + scope.row.info.order_id" class="action-iconk">
+                        <i class="ri-shopping-basket-2-fill"></i>&nbsp;&nbsp;#{{scope.row.info.order_id}}
+                      </nuxt-link>
+                    </div>
+
 
                     <div v-if="scope.row.type=='INTRODUCE_POINT'">
                       <i class="fas fa-street-view"></i>&nbsp;&nbsp;{{ scope.row.info.username }}
+                    </div>
+
+                    <div v-if="scope.row.type=='TRANSFER_IN'">
+                      <i class="ri-gift-fill text-warning"></i>&nbsp;&nbsp;{{ scope.row.info.username }}
+                    </div>
+                    <div v-if="scope.row.type=='TRANSFER_OUT'">
+                      <i class="ri-hand-heart-fill text-success"></i>&nbsp;&nbsp;{{ scope.row.info.username }}
                     </div>
                   </template>
                 </el-table-column>
