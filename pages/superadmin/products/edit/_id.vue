@@ -87,7 +87,11 @@ export default {
             client_admin: 0,
             level_2: 0,
             level_1: 0,
-            user_self:0
+            user_self: 0
+          },
+          special_promotion: {
+            is_valid: false,
+            bonus: 0
           }
         },
       },
@@ -101,6 +105,21 @@ export default {
     ...mapState({
       categories: state => state.system.categories,
     }),
+    introduction_point_total() {
+      if (this.edit_variation === undefined) {
+        return 0;
+      }
+      return parseInt(this.edit_variation.point_rule.policies.client_superadmin) + parseInt(this.edit_variation.point_rule.policies.client_admin) +
+        parseInt(this.edit_variation.point_rule.policies.level_2) + parseInt(this.edit_variation.point_rule.policies.level_1) +
+        parseInt(this.edit_variation.point_rule.policies.user_self)
+    },
+    profit() {
+      console.log(parseInt(this.edit_variation.price) - parseInt(this.edit_variation.purchase_price)-this.introduction_point_total)
+      console.log(this.edit_variation.point_rule.special_promotion.is_valid?this.edit_variation.point_rule.special_promotion.bonus:0)
+      let special_promotion_bonus=this.edit_variation.point_rule.special_promotion.is_valid?this.edit_variation.point_rule.special_promotion.bonus:0;
+
+      return parseInt(this.edit_variation.price) - parseInt(this.edit_variation.purchase_price)-this.introduction_point_total-special_promotion_bonus;
+    },
     vendorlist() {
       return this.$store.state.system.vendorlist;
     },
@@ -115,7 +134,7 @@ export default {
   },
   methods: {
     handleCategoryChange(val) {
-      console.log("handleCategoryChange",val)
+      console.log("handleCategoryChange", val)
       let index = val.length - 1;
       this.product.category.id = val[index]
     },
@@ -183,9 +202,9 @@ export default {
       console.log(res)
       if (res.result) {
         let new_variation = res.data.variation;
-        let index = this.product.variations_admin.findIndex(variation => variation.id === new_variation.id)
+        let index = this.product.variations.findIndex(variation => variation.id === new_variation.id)
         if (index > -1) {
-          this.product.variations_admin.splice(index, 1, new_variation)
+          this.product.variations.splice(index, 1, new_variation)
           swalService.showToast("success", "upload successfully!")
         }
       }
@@ -219,13 +238,15 @@ export default {
           if (response.data.result) {
             let variation_server = response.data.data.variation;
             console.log(variation_server)
-            var index = vm.product.variations_admin.findIndex(variation => variation.id === variation_server.id)
+            var index = vm.product.variations.findIndex(variation => variation.id === variation_server.id)
             console.log(index)
             if (index > -1) {
-              vm.product.variations_admin.splice(index, 1, variation_server);
+              vm.product.variations.splice(index, 1, variation_server);
             }
             swalService.showModal("Success", "Variation has been updated successfully updated!", "success")
             vm.$bvModal.hide("modal_variation")
+          }else{
+            swalService.showModal("Error", JSON.stringify(response.data.message), "error")
           }
         })
 
@@ -237,9 +258,11 @@ export default {
           console.log(response)
           if (response.data.result) {
             let variation_server = response.data.data.variation;
-            vm.product.variations_admin.push(variation_server);
+            vm.product.variations.push(variation_server);
             swalService.showModal("Success", "Variation has been added successfully updated!", "success")
             vm.$bvModal.hide("modal_variation")
+          }else{
+            swalService.showModal("Error", JSON.stringify(response.data.message), "error")
           }
         })
 
@@ -252,9 +275,9 @@ export default {
       axios.delete(url).then((response) => {
         console.log(response)
         if (response.data.result) {
-          var index = vm.product.variations_admin.findIndex(variation => variation.id === variation_id)
+          var index = vm.product.variations.findIndex(variation => variation.id === variation_id)
           if (index > -1) {
-            vm.product.variations_admin.splice(index, 1);
+            vm.product.variations.splice(index, 1);
           }
           swalService.showModal("Success", "Variation has been deleted successfully updated!", "success")
           vm.$bvModal.hide("modal_variation")
@@ -615,7 +638,7 @@ export default {
                   </tr>
                   </thead>
                   <tbody>
-                  <tr v-for="variation in product.variations_admin">
+                  <tr v-for="variation in product.variations">
                     <td class="text-center">
                       {{ variation.name }} <br>
                       <b-badge variant="primary" pill v-if="variation.variation_type==='REGULAR'">REGULAR</b-badge>
@@ -634,42 +657,60 @@ export default {
                       </el-upload>
                     </td>
                     <td>{{ variation.description.substr(0, 50) + "..." }}</td>
-                    <td  class="text-center">{{variation.inventory}}</td>
+                    <td class="text-center">{{ variation.inventory }}</td>
                     <td class="text-right">
                       <span class="d-block">{{ variation.price|currency("¥") }}</span>
                       <span class="d-block">{{ variation.purchase_price|currency("¥") }}</span>
                     </td>
                     <td class="text-right">
                       <h5>
-                        <b-badge variant="success" pill v-if="variation.point_rule.is_valid">on</b-badge>
-                        <b-badge variant="danger" pill v-else>off</b-badge>
+                        <span class="d-inline-block float-left">Introduction Point</span>
+                        <b-badge variant="success float-right" pill v-if="variation.point_rule.is_valid">on</b-badge>
+                        <b-badge variant="danger float-right" pill v-else>off</b-badge>
                       </h5>
-                      <ul style="list-style-type: none;">
+                      <div class="clearfix"></div>
+                      <ul style="list-style-type: none;" v-if="variation.point_rule.is_valid">
                         <li>
-                          <span class="inline-block text-right mr-3">{{$t("menuitems.organizations.user.client_superadmin")}}:</span>
-                          {{variation.point_rule.policies.client_superadmin|currency("¥")}}
-                        </li>
-                        <li>
-                          <span class="inline-block text-right mr-3">{{$t("menuitems.organizations.user.client_admin")}}:</span>
-                          {{variation.point_rule.policies.client_admin|currency("¥")}}
+                          <span
+                            class="inline-block text-right mr-3">{{ $t("menuitems.organizations.user.client_superadmin") }}:</span>
+                          {{ variation.point_rule.policies.client_superadmin|currency("¥") }}
                         </li>
                         <li>
                           <span
-                            class="inline-block text-right mr-3">{{$t("menuitems.organizations.user.level_2")}}:</span>{{
+                            class="inline-block text-right mr-3">{{ $t("menuitems.organizations.user.client_admin") }}:</span>
+                          {{ variation.point_rule.policies.client_admin|currency("¥") }}
+                        </li>
+                        <li>
+                          <span
+                            class="inline-block text-right mr-3">{{ $t("menuitems.organizations.user.level_2") }}:</span>{{
                             variation.point_rule.policies.level_2|currency("¥")
                           }}
                         </li>
                         <li>
                           <span
-                            class="inline-block text-right mr-3">{{$t("menuitems.organizations.user.level_1")}}:</span>{{
+                            class="inline-block text-right mr-3">{{ $t("menuitems.organizations.user.level_1") }}:</span>{{
                             variation.point_rule.policies.level_1|currency("¥")
                           }}
                         </li>
                         <li>
                           <span
-                            class="inline-block text-right mr-3">{{$t("menuitems.organizations.user.user_self")}}:</span>{{
+                            class="inline-block text-right mr-3">{{ $t("menuitems.organizations.user.user_self") }}:</span>{{
                             variation.point_rule.policies.user_self|currency("¥")
                           }}
+                        </li>
+                      </ul>
+
+                      <h5>
+                        <span class="d-inline-block float-left">Spcial Promotion Bonus</span>
+                        <b-badge variant="success float-right" pill v-if="variation.point_rule.special_promotion.is_valid">on</b-badge>
+                        <b-badge variant="danger float-right" pill v-else>off</b-badge>
+                      </h5>
+                      <div class="clearfix"></div>
+                      <ul style="list-style-type: none;" v-if="variation.point_rule.special_promotion.is_valid">
+                        <li>
+                          <span
+                            class="inline-block text-right mr-3">{{ $t("menuitems.organizations.user.client_superadmin") }}:</span>
+                          {{ variation.point_rule.special_promotion.bonus|currency("¥") }}
                         </li>
                       </ul>
                     </td>
@@ -694,6 +735,46 @@ export default {
     <b-modal id="modal_variation" scrollable title="Edit Variation Information" title-class="font-18"
              body-class="p-4" hide-footer>
       <form @submit.prevent="updateProductVariationInformation">
+        <div class="row mt-md-2">
+
+          <div class="col-md-4">
+            <label class="mb-2">Type<span class="text-danger">*</span></label>
+          </div>
+          <div class="col-md-4">
+            <div class="form-group">
+              <div class="radio form-check-inline ml-md-2">
+                <input type="radio" v-model="edit_variation.variation_type" id="variation_type_Radio1" value="REGULAR"
+                       name="radioInline" checked/>
+                <label for="type_Radio1">REGULAR</label>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-4">
+            <div class="form-group">
+              <div class="radio form-check-inline">
+                <input type="radio" v-model="edit_variation.variation_type" id="variation_type_Radio2" value="PINGO"
+                       name="radioInline"/>
+                <label for="type_Radio2">PINGO</label>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="row mt-md-2">
+          <div class="col-md-6">
+            <label for="field-inventory" class="control-label">Active
+              <span class="text-danger">*</span>
+            </label>
+          </div>
+          <div class="col-md-6">
+
+            <div class="form-group">
+              <switches v-model="edit_variation.point_rule.is_valid" id="field-is_valid" type-bold="false"
+                        color="warning"
+                        class="ml-1 my-auto"></switches>
+            </div>
+          </div>
+        </div>
+
         <div class="row">
           <div class="col-md-12">
             <div class="form-group">
@@ -723,21 +804,6 @@ export default {
             </div>
           </div>
         </div>
-        <div class="row mt-md-2">
-          <div class="col-md-6">
-            <label for="field-inventory" class="control-label">Active
-              <span class="text-danger">*</span>
-            </label>
-          </div>
-          <div class="col-md-6">
-
-            <div class="form-group">
-              <switches v-model="edit_variation.point_rule.is_valid" id="field-is_valid" type-bold="false"
-                        color="warning"
-                        class="ml-1 my-auto"></switches>
-            </div>
-          </div>
-        </div>
 
         <div class="row">
           <div class="col-md-6">
@@ -760,35 +826,11 @@ export default {
           </div>
         </div>
 
-        <div class="row mt-md-2">
-
-          <div class="col-md-6">
-            <label class="mb-2">Type<span class="text-danger">*</span></label>
-          </div>
-          <div class="col-md-3">
-            <div class="form-group">
-              <div class="radio form-check-inline ml-md-2">
-                <input type="radio" v-model="edit_variation.variation_type" id="variation_type_Radio1" value="REGULAR"
-                       name="radioInline" checked/>
-                <label for="type_Radio1">REGULAR</label>
-              </div>
-            </div>
-          </div>
-          <div class="col-md-3">
-            <div class="form-group">
-              <div class="radio form-check-inline">
-                <input type="radio" v-model="edit_variation.variation_type" id="variation_type_Radio2" value="PINGO"
-                       name="radioInline"/>
-                <label for="type_Radio2">PINGO</label>
-              </div>
-            </div>
-          </div>
-        </div>
 
         <div class="row">
-          <div class="col-md-6">
+          <div class="col-md-4">
             <div class="form-group">
-              <label for="field-price" class="control-label">Price
+              <label for="field-price" class="control-label">販売価格
                 <span class="text-danger">*</span>
               </label>
               <input type="number" id="field-price" v-model="edit_variation.price" class="form-control"
@@ -800,9 +842,9 @@ export default {
               </div>
             </div>
           </div>
-          <div class="col-md-6">
+          <div class="col-md-4">
             <div class="form-group">
-              <label for="field-price" class="control-label">Purchase Price
+              <label for="field-price" class="control-label">仕入価格
                 <span class="text-danger">*</span>
               </label>
               <input type="number" id="field-purchase_price" v-model="edit_variation.purchase_price"
@@ -815,14 +857,25 @@ export default {
               </div>
             </div>
           </div>
-        </div>
-        <div class="row">
-          <div class="col-md-6">
+          <div class="col-md-4">
             <div class="form-group">
-              <label for="field-client_admin" class="control-label">{{$t("menuitems.organizations.user.client_superadmin")}}
+              <label for="field-price" class="control-label">粗利
+              </label> <br>
+
+              <b-button class="btn-rounded ml-1" variant="danger">{{ profit|currency("¥") }}</b-button>
+            </div>
+          </div>
+        </div>
+        <h4>紹介ポイント</h4>
+        <div class="row">
+          <div class="col-md-4">
+            <div class="form-group">
+              <label for="field-client_admin"
+                     class="control-label">{{ $t("menuitems.organizations.user.client_superadmin") }}
                 <span class="text-danger">*</span>
               </label>
-              <input type="number" id="field-client_superadmin" v-model="edit_variation.point_rule.policies.client_superadmin"
+              <input type="number" id="field-client_superadmin"
+                     v-model="edit_variation.point_rule.policies.client_superadmin"
                      class="form-control"
                      :class="{ 'is-invalid': submitted && $v.edit_variation.point_rule.policies.client_superadmin.$error }"
                      :placeholder="edit_variation.point_rule.policies.client_superadmin"/>
@@ -832,9 +885,10 @@ export default {
               </div>
             </div>
           </div>
-          <div class="col-md-6">
+          <div class="col-md-4">
             <div class="form-group">
-              <label for="field-client_admin" class="control-label">{{$t("menuitems.organizations.user.client_admin")}}
+              <label for="field-client_admin"
+                     class="control-label">{{ $t("menuitems.organizations.user.client_admin") }}
                 <span class="text-danger">*</span>
               </label>
               <input type="number" id="field-client_admin" v-model="edit_variation.point_rule.policies.client_admin"
@@ -847,11 +901,19 @@ export default {
               </div>
             </div>
           </div>
+          <div class="col-md-4">
+            <div class="form-group">
+              <label for="field-price" class="control-label">紹介ポイント合計
+              </label>
+              <b-button class="btn-rounded ml-1" variant="warning">{{ introduction_point_total|currency("¥") }}
+              </b-button>
+            </div>
+          </div>
         </div>
         <div class="row">
-          <div class="col-md-6">
+          <div class="col-md-4">
             <div class="form-group">
-              <label for="field-level_2" class="control-label">{{$t("menuitems.organizations.user.level_2")}}
+              <label for="field-level_2" class="control-label">{{ $t("menuitems.organizations.user.level_2") }}
                 <span class="text-danger">*</span>
               </label>
               <input type="number" id="field-level_2" v-model="edit_variation.point_rule.policies.level_2"
@@ -864,9 +926,9 @@ export default {
               </div>
             </div>
           </div>
-          <div class="col-md-6">
+          <div class="col-md-4">
             <div class="form-group">
-              <label for="field-level_1" class="control-label">{{$t("menuitems.organizations.user.level_1")}}
+              <label for="field-level_1" class="control-label">{{ $t("menuitems.organizations.user.level_1") }}
                 <span class="text-danger">*</span>
               </label>
               <input type="number" id="field-level_1" v-model="edit_variation.point_rule.policies.level_1"
@@ -879,11 +941,9 @@ export default {
               </div>
             </div>
           </div>
-        </div>
-        <div class="row">
-          <div class="col-md-6">
+          <div class="col-md-4">
             <div class="form-group">
-              <label for="field-user_self" class="control-label">{{$t("menuitems.organizations.user.user_self")}}
+              <label for="field-user_self" class="control-label">{{ $t("menuitems.organizations.user.user_self") }}
                 <span class="text-danger">*</span>
               </label>
               <input type="number" id="field-user_self" v-model="edit_variation.point_rule.policies.user_self"
@@ -891,12 +951,55 @@ export default {
                      :class="{ 'is-invalid': submitted && $v.edit_variation.point_rule.policies.user_self.$error }"
                      :placeholder="edit_variation.point_rule.policies.user_self"/>
 
-              <div v-if="submitted && !$v.edit_variation.point_rule.policies.user_self.required" class="invalid-feedback">
+              <div v-if="submitted && !$v.edit_variation.point_rule.policies.user_self.required"
+                   class="invalid-feedback">
                 This value is required.
               </div>
             </div>
           </div>
         </div>
+        <h4>アフリエイト　ポイント</h4>
+
+        <div class="row">
+          <div class="col-md-6">
+            <div class="form-group">
+              <label for="field-special_promotion_valid"
+                     class="control-label">{{ $t("menuitems.organizations.user.client_superadmin") }}
+              </label> <br>
+              <switches v-model="edit_variation.point_rule.special_promotion.is_valid"
+                        id="field-special_promotion_valid" type-bold="false"
+                        color="warning"
+                        class="ml-1 my-auto"></switches>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="form-group">
+              <label for="field-special_promotion_bonus"
+                     class="control-label">{{ $t("menuitems.organizations.user.client_superadmin") }}
+              </label>
+              <input type="number" id="field-special_promotion_bonus"
+                     v-model="edit_variation.point_rule.special_promotion.bonus"
+                     class="form-control"/>
+            </div>
+          </div>
+          <!--          <div class="col-md-6">-->
+          <!--            <div class="form-group">-->
+          <!--              <label for="field-client_admin" class="control-label">{{$t("menuitems.organizations.user.client_admin")}}-->
+          <!--                <span class="text-danger">*</span>-->
+          <!--              </label>-->
+          <!--              <input type="number" id="field-client_admin" v-model="edit_variation.point_rule.policies.client_admin"-->
+          <!--                     class="form-control"-->
+          <!--                     :class="{ 'is-invalid': submitted && $v.edit_variation.point_rule.policies.client_admin.$error }"-->
+          <!--                     :placeholder="edit_variation.point_rule.policies.client_admin"/>-->
+
+          <!--              <div v-if="submitted && !$v.edit_variation.point_rule.policies.client_admin.required"-->
+          <!--                   class="invalid-feedback">This value is required.-->
+          <!--              </div>-->
+          <!--            </div>-->
+          <!--          </div>-->
+        </div>
+
+
         <div class="form-group row">
           <div class="col-8 offset-4">
             <button type="submit" class="btn btn-primary">Submit</button>
