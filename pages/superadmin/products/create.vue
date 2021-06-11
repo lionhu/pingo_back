@@ -1,13 +1,14 @@
 <script>
 import {
-  FormWizard, TabContent, WizardButton } from "vue-form-wizard";
+  FormWizard, TabContent, WizardButton
+} from "vue-form-wizard";
 import vue2Dropzone from "vue2-dropzone";
 import CKEditor from "@ckeditor/ckeditor5-vue";
 import ClassicEditor from "@ckeditor/ckeditor5-build-classic";
 import Swal from "sweetalert2"
-
+import {swalService} from "~/helpers/fakebackend/swal.service"
 import "vue-form-wizard/dist/vue-form-wizard.min.css";
-import {mapState,mapGetters} from "vuex";
+import {mapState, mapGetters} from "vuex";
 import {axios} from "@/plugins/axios";
 
 /**
@@ -29,14 +30,15 @@ export default {
     FormWizard,
     TabContent,
     WizardButton,
-    Switches:()=>import("vue-switches"),
-    "el-rate":()=>import("element-ui/lib/rate"),
-    "el-upload":()=>import("element-ui/lib/upload"),
-    "el-dialog":()=>import("element-ui/lib/dialog"),
-    "el-option":()=>import("element-ui/lib/option"),
-    "el-select":()=>import("element-ui/lib/select"),
-    "el-cascader":()=>import("element-ui/lib/cascader"),
+    Switches: () => import("vue-switches"),
+    "el-rate": () => import("element-ui/lib/rate"),
+    "el-upload": () => import("element-ui/lib/upload"),
+    "el-dialog": () => import("element-ui/lib/dialog"),
+    "el-option": () => import("element-ui/lib/option"),
+    "el-select": () => import("element-ui/lib/select"),
+    "el-cascader": () => import("element-ui/lib/cascader"),
     vueDropzone: vue2Dropzone,
+    VariationTable: () => import('../components/VariationTable'),
     ckeditor: CKEditor.component,
   },
   data() {
@@ -75,6 +77,7 @@ export default {
       disabled: false,
       imageUrl: "",
       modeAdd: false,
+      showVariationModal: false,
       edit_variation: {
         price: 0,
         purchase_price: 0,
@@ -88,7 +91,11 @@ export default {
             client_admin: 0,
             level_2: 0,
             level_1: 0,
-            user_self:0
+            user_self: 0
+          },
+          special_promotion: {
+            is_valid: false,
+            bonus: 0
           }
         },
       },
@@ -114,7 +121,7 @@ export default {
   },
   computed: {
     ...mapGetters({
-      back_server:"system/getterBackServer",
+      back_server: "system/getterBackServer",
       // categories: "categories/getterCategoryList"
     }),
     ...mapState({
@@ -124,7 +131,7 @@ export default {
       return this.$store.state.system.vendorlist;
     },
     csrftoken() {
-      return this.$store.state.auth?this.$store.state.auth.user.token:"";
+      return this.$store.state.auth ? this.$store.state.auth.user.token : "";
     },
     sliderlist() {
       return this.product.sliderimages.map(function (slider) {
@@ -160,12 +167,12 @@ export default {
       </div>
       `;
     },
-    isLastStep() {
-      if (this.$refs.wizard) {
-        return this.$refs.wizard.isLastStep;
-      }
-      return false;
-    },
+    // isLastStep() {
+    //   if (this.$refs.wizard) {
+    //     return this.$refs.wizard.isLastStep;
+    //   }
+    //   return false;
+    // },
 
     update_product() {
       this.product.vendor_id = this.product.vendor.id;
@@ -191,7 +198,7 @@ export default {
 
       let url = `/back/store/api/products/`
       var vm = this;
-      console.log("create new product",this.product)
+      console.log("create new product", this.product)
       this.$axios.post(url, this.product).then((response) => {
         console.log(response)
         if (response.data.result && response.data.data.product.id) {
@@ -254,13 +261,13 @@ export default {
     },
     switchAddVariationMode() {
       this.modeAdd = true;
-      this.$bvModal.show("modal_variation")
+      this.showVariationModal = true;
     },
     editVariation(variation) {
       console.log(variation)
       this.edit_variation = variation;
       this.modeAdd = false;
-      this.$bvModal.show("modal_variation")
+      this.showVariationModal = true;
     },
     updateProductVariationInformation() {
       if (!this.modeAdd) {
@@ -270,10 +277,10 @@ export default {
           if (response.data.result) {
             let variation_server = response.data.data.variation;
             console.log(variation_server)
-            var index = vm.product.variations_admin.findIndex(variation => variation.id === variation_server.id)
+            var index = vm.product.variations.findIndex(variation => variation.id === variation_server.id)
             console.log(index)
             if (index > -1) {
-              vm.product.variations_admin.splice(index, 1, variation_server);
+              vm.product.variations.splice(index, 1, variation_server);
             }
             Swal.fire("Success", "Variation has been updated successfully updated!", "success")
             vm.$bvModal.hide("modal_variation")
@@ -288,7 +295,7 @@ export default {
           console.log(response)
           if (response.data.result) {
             let variation_server = response.data.data.variation;
-            vm.product.variations_admin.push(variation_server);
+            vm.product.variations.push(variation_server);
             Swal.fire("Success", "Variation has been added successfully updated!", "success")
             vm.$bvModal.hide("modal_variation")
           }
@@ -303,17 +310,63 @@ export default {
       this.$axios.delete(url).then((response) => {
         console.log(response)
         if (response.data.result) {
-          var index = vm.product.variations_admin.findIndex(variation => variation.id === variation_id)
+          var index = vm.product.variations.findIndex(variation => variation.id === variation_id)
           if (index > -1) {
-            vm.product.variations_admin.splice(index, 1);
+            vm.product.variations.splice(index, 1);
           }
           Swal.fire("Success", "Variation has been deleted successfully updated!", "success")
           vm.$bvModal.hide("modal_variation")
         }
       })
-    }
+    },
+    operateVariationTable(result,) {
+      console.log(result,)
+      switch (result.command) {
+        case "addVariation":
+          this.AddVariation(result.variation);
+          break;
+        case "editVariation":
+          this.ReplaceVariation(result.variation);
+          break;
+        case "replaceVariation":
+          this.ReplaceVariation(result.variation);
+          break;
+        case "deleteVariation":
+          this.deleteVariation(result.variation);
+          break;
+
+      }
+    },
+    AddVariation(_variation) {
+      this.product.variations.push(_variation)
+      swalService.showModal("Success", "Variation has been successfully added!", "success")
+    },
+    ReplaceVariation(_variation) {
+      let vm = this;
+      var index = vm.product.variations.findIndex(variation => variation.id === _variation.id)
+      if (index > -1) {
+        vm.product.variations.splice(index, 1, _variation);
+        swalService.showModal("Success", "Variation has been successfully updated!", "success")
+      }
+    },
+    deleteVariation(variation_id) {
+      let url = `/back/store/api/variations/${variation_id}/`
+      var vm = this;
+      console.log(url)
+      axios.delete(url).then((response) => {
+        console.log(response)
+        if (response.data.result) {
+          var index = vm.product.variations.findIndex(variation => variation.id === variation_id)
+          if (index > -1) {
+            vm.product.variations.splice(index, 1);
+          }
+          swalService.showModal("Success", "Variation has been deleted successfully updated!", "success")
+          vm.$bvModal.hide("modal_variation")
+        }
+      })
+    },
   },
-  middleware: ['router-auth','router-superadmin'],
+  middleware: ['router-auth', 'router-superadmin'],
 };
 </script>
 
@@ -587,256 +640,173 @@ export default {
         <!-- end card -->
       </div>
     </div>
-    <div class="row" v-if="product.id">
-      <div class="col-lg-12">
-        <div class="card">
-          <div class="card-body">
-            <div class="row">
-              <div class="col-md-6">Available Variations</div>
-              <div class="col-md-6">
-                <button class="btn btn-danger mb-2 float-right" @click="switchAddVariationMode"><i
-                  class="mdi mdi-plus-circle mr-1"></i> Add Variation
-                </button>
-              </div>
-            </div>
-            <div class="row">
-              <div class="table-responsive">
-                <table class="table table-bordered table-centered mb-0">
-                  <thead class="thead-light">
-                  <tr>
-                    <th>name</th>
-                    <th>description</th>
-                    <th>price</th>
-                    <th>point_rule</th>
-                    <th></th>
-                  </tr>
-                  </thead>
-                  <tbody>
-                  <tr v-for="variation in product.variations_admin">
-                    <td>{{ variation.name }}</td>
-                    <td>{{ variation.description.substr(0, 50) + "..." }}</td>
-                    <td>
-                      <span class="d-block">{{ variation.price|currency("¥") }}</span>
-                      <span class="d-block">{{ variation.purchase_price|currency("¥") }}</span>
-                    </td>
-                    <td>
-                      <h5>
-                        <b-badge variant="success" pill v-if="variation.point_rule.is_valid">on</b-badge>
-                        <b-badge variant="danger" pill v-else>off</b-badge>
-                      </h5>
-                      <ul>
-                        <li>
-                          <span
-                            class="inline-block text-right mr-3">{{$t("menuitems.organizations.user.client_superadmin")}}:</span>{{
-                            variation.point_rule.policies.client_superadmin|currency("¥")
-                          }}
-                        </li>
-                        <li>
-                          <span
-                            class="inline-block text-right mr-3">{{$t("menuitems.organizations.user.client_admin")}}:</span>{{
-                            variation.point_rule.policies.client_admin|currency("¥")
-                          }}
-                        </li>
-                        <li>
-                          <span
-                            class="inline-block text-right mr-3">{{$t("menuitems.organizations.user.level_2")}}:</span>{{
-                            variation.point_rule.policies.level_2|currency("¥")
-                          }}
-                        </li>
-                        <li>
-                          <span
-                            class="inline-block text-right mr-3">{{$t("menuitems.organizations.user.level_1")}}:</span>{{
-                            variation.point_rule.policies.level_1|currency("¥")
-                          }}
-                        </li>
-                        <li>
-                          <span
-                            class="inline-block text-right mr-3">{{$t("menuitems.organizations.user.user_self")}}:</span>{{
-                            variation.point_rule.policies.user_self|currency("¥")
-                          }}
-                        </li>
-                      </ul>
-                    </td>
-                    <td class="align-items-center">
-                      <a href="javascript:void(0);" @click="editVariation(variation)" class="action-icon">
-                        <i class="mdi mdi-square-edit-outline"></i></a>
-                      <a href="javascript:void(0);" @click="deleteVariation(variation.id)" class="action-icon">
-                        <i class="mdi mdi-delete"></i></a>
-                    </td>
-                  </tr>
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          </div>
-          <!-- end card -->
-        </div>
-      </div>
-      <!-- end row -->
-    </div>
 
-    <b-modal id="modal_variation" scrollable title="Edit Variation Information" title-class="font-18"
-             body-class="p-4" hide-footer>
-      <form @submit.prevent="updateProductVariationInformation">
-        <div class="row">
-          <div class="col-md-12">
-            <div class="form-group">
-              <label for="field-item_name" class="control-label">Name
-                <span class="text-danger">*</span>
-              </label>
-              <input type="text" id="field-item_name" v-model="edit_variation.name" class="form-control"
-                     :class="{ 'is-invalid': submitted && $v.edit_variation.name.$error }"
-                     :placeholder="edit_variation.name"/>
+    <VariationTable :variations="product.variations" :product_id="product.id"
+                    @operateTable="operateVariationTable" v-if="product.id"></VariationTable>
 
-              <div v-if="submitted && !$v.edit_variation.name.required" class="invalid-feedback">This value is required.
-              </div>
-            </div>
-          </div>
-        </div>
-        <div class="row">
-          <div class="col-md-12">
-            <div class="form-group">
-              <label for="field-description" class="control-label">Description<span class="text-danger">*</span></label>
-              <textarea id="field-description" v-model="edit_variation.description" class="form-control"
-                        :placeholder="edit_variation.description"
-                        :class="{ 'is-invalid': submitted && $v.edit_variation.description.$error }"/>
 
-              <div v-if="submitted && !$v.edit_variation.description.required" class="invalid-feedback">This value is
-                required.
-              </div>
-            </div>
-          </div>
-        </div>
-        <div class="row mt-md-2">
-          <div class="col-md-6">
-            <b-form-group id="field-is_valid" label-cols="4" label-cols-lg="4" label-size="sm" label="Active">
-              <switches v-model="edit_variation.point_rule.is_valid" id="field-is_valid" type-bold="false"
-                        color="warning"
-                        class="ml-1 my-auto"></switches>
-            </b-form-group>
-          </div>
-        </div>
+    <!--    <b-modal id="modal_variation" scrollable title="Edit Variation Information" title-class="font-18"-->
+    <!--             body-class="p-4" hide-footer>-->
+    <!--      <form @submit.prevent="updateProductVariationInformation">-->
+    <!--        <div class="row">-->
+    <!--          <div class="col-md-12">-->
+    <!--            <div class="form-group">-->
+    <!--              <label for="field-item_name" class="control-label">Name-->
+    <!--                <span class="text-danger">*</span>-->
+    <!--              </label>-->
+    <!--              <input type="text" id="field-item_name" v-model="edit_variation.name" class="form-control"-->
+    <!--                     :class="{ 'is-invalid': submitted && $v.edit_variation.name.$error }"-->
+    <!--                     :placeholder="edit_variation.name"/>-->
 
-        <div class="row">
-          <div class="col-md-6">
-            <div class="form-group">
-              <label for="field-price" class="control-label">Price
-                <span class="text-danger">*</span>
-              </label>
-              <input type="number" id="field-price" v-model="edit_variation.price" class="form-control"
-                     :class="{ 'is-invalid': submitted && $v.edit_variation.price.$error }"
-                     :placeholder="edit_variation.price"/>
+    <!--              <div v-if="submitted && !$v.edit_variation.name.required" class="invalid-feedback">This value is required.-->
+    <!--              </div>-->
+    <!--            </div>-->
+    <!--          </div>-->
+    <!--        </div>-->
+    <!--        <div class="row">-->
+    <!--          <div class="col-md-12">-->
+    <!--            <div class="form-group">-->
+    <!--              <label for="field-description" class="control-label">Description<span class="text-danger">*</span></label>-->
+    <!--              <textarea id="field-description" v-model="edit_variation.description" class="form-control"-->
+    <!--                        :placeholder="edit_variation.description"-->
+    <!--                        :class="{ 'is-invalid': submitted && $v.edit_variation.description.$error }"/>-->
 
-              <div v-if="submitted && !$v.edit_variation.price.required" class="invalid-feedback">This value is
-                required.
-              </div>
-            </div>
-          </div>
-          <div class="col-md-6">
-            <div class="form-group">
-              <label for="field-price" class="control-label">Purchase Price
-                <span class="text-danger">*</span>
-              </label>
-              <input type="number" id="field-purchase_price" v-model="edit_variation.purchase_price"
-                     class="form-control"
-                     :class="{ 'is-invalid': submitted && $v.edit_variation.purchase_price.$error }"
-                     :placeholder="edit_variation.purchase_price"/>
+    <!--              <div v-if="submitted && !$v.edit_variation.description.required" class="invalid-feedback">This value is-->
+    <!--                required.-->
+    <!--              </div>-->
+    <!--            </div>-->
+    <!--          </div>-->
+    <!--        </div>-->
+    <!--        <div class="row mt-md-2">-->
+    <!--          <div class="col-md-6">-->
+    <!--            <b-form-group id="field-is_valid" label-cols="4" label-cols-lg="4" label-size="sm" label="Active">-->
+    <!--              <switches v-model="edit_variation.point_rule.is_valid" id="field-is_valid" type-bold="false"-->
+    <!--                        color="warning"-->
+    <!--                        class="ml-1 my-auto"></switches>-->
+    <!--            </b-form-group>-->
+    <!--          </div>-->
+    <!--        </div>-->
 
-              <div v-if="submitted && !$v.edit_variation.purchase_price.required" class="invalid-feedback">This value is
-                required.
-              </div>
-            </div>
-          </div>
-        </div>
-        <div class="row">
-          <div class="col-md-6">
-            <div class="form-group">
-              <label for="field-client_admin" class="control-label">{{$t("menuitems.organizations.user.client_superadmin")}}
-                <span class="text-danger">*</span>
-              </label>
-              <input type="number" id="field-client_superadmin" v-model="edit_variation.point_rule.policies.client_superadmin"
-                     class="form-control"
-                     :class="{ 'is-invalid': submitted && $v.edit_variation.point_rule.policies.client_superadmin.$error }"
-                     :placeholder="edit_variation.point_rule.policies.client_superadmin"/>
+    <!--        <div class="row">-->
+    <!--          <div class="col-md-6">-->
+    <!--            <div class="form-group">-->
+    <!--              <label for="field-price" class="control-label">Price-->
+    <!--                <span class="text-danger">*</span>-->
+    <!--              </label>-->
+    <!--              <input type="number" id="field-price" v-model="edit_variation.price" class="form-control"-->
+    <!--                     :class="{ 'is-invalid': submitted && $v.edit_variation.price.$error }"-->
+    <!--                     :placeholder="edit_variation.price"/>-->
 
-              <div v-if="submitted && !$v.edit_variation.point_rule.policies.client_superadmin.required"
-                   class="invalid-feedback">This value is required.
-              </div>
-            </div>
-          </div>
-          <div class="col-md-6">
-            <div class="form-group">
-              <label for="field-client_admin" class="control-label">{{$t("menuitems.organizations.user.client_admin")}}
-                <span class="text-danger">*</span>
-              </label>
-              <input type="number" id="field-client_admin" v-model="edit_variation.point_rule.policies.client_admin"
-                     class="form-control"
-                     :class="{ 'is-invalid': submitted && $v.edit_variation.point_rule.policies.client_admin.$error }"
-                     :placeholder="edit_variation.point_rule.policies.client_admin"/>
+    <!--              <div v-if="submitted && !$v.edit_variation.price.required" class="invalid-feedback">This value is-->
+    <!--                required.-->
+    <!--              </div>-->
+    <!--            </div>-->
+    <!--          </div>-->
+    <!--          <div class="col-md-6">-->
+    <!--            <div class="form-group">-->
+    <!--              <label for="field-price" class="control-label">Purchase Price-->
+    <!--                <span class="text-danger">*</span>-->
+    <!--              </label>-->
+    <!--              <input type="number" id="field-purchase_price" v-model="edit_variation.purchase_price"-->
+    <!--                     class="form-control"-->
+    <!--                     :class="{ 'is-invalid': submitted && $v.edit_variation.purchase_price.$error }"-->
+    <!--                     :placeholder="edit_variation.purchase_price"/>-->
 
-              <div v-if="submitted && !$v.edit_variation.point_rule.policies.client_admin.required"
-                   class="invalid-feedback">This value is required.
-              </div>
-            </div>
-          </div>
-        </div>
-        <div class="row">
-          <div class="col-md-6">
-            <div class="form-group">
-              <label for="field-level_2" class="control-label">{{$t("menuitems.organizations.user.level_2")}}
-                <span class="text-danger">*</span>
-              </label>
-              <input type="number" id="field-level_2" v-model="edit_variation.point_rule.policies.level_2"
-                     class="form-control"
-                     :class="{ 'is-invalid': submitted && $v.edit_variation.point_rule.policies.level_2.$error }"
-                     :placeholder="edit_variation.point_rule.policies.level_2"/>
+    <!--              <div v-if="submitted && !$v.edit_variation.purchase_price.required" class="invalid-feedback">This value is-->
+    <!--                required.-->
+    <!--              </div>-->
+    <!--            </div>-->
+    <!--          </div>-->
+    <!--        </div>-->
+    <!--        <div class="row">-->
+    <!--          <div class="col-md-6">-->
+    <!--            <div class="form-group">-->
+    <!--              <label for="field-client_admin" class="control-label">{{$t("menuitems.organizations.user.client_superadmin")}}-->
+    <!--                <span class="text-danger">*</span>-->
+    <!--              </label>-->
+    <!--              <input type="number" id="field-client_superadmin" v-model="edit_variation.point_rule.policies.client_superadmin"-->
+    <!--                     class="form-control"-->
+    <!--                     :class="{ 'is-invalid': submitted && $v.edit_variation.point_rule.policies.client_superadmin.$error }"-->
+    <!--                     :placeholder="edit_variation.point_rule.policies.client_superadmin"/>-->
 
-              <div v-if="submitted && !$v.edit_variation.point_rule.policies.level_2.required" class="invalid-feedback">
-                This value is required.
-              </div>
-            </div>
-          </div>
-          <div class="col-md-6">
-            <div class="form-group">
-              <label for="field-level_1" class="control-label">{{$t("menuitems.organizations.user.level_1")}}
-                <span class="text-danger">*</span>
-              </label>
-              <input type="number" id="field-level_1" v-model="edit_variation.point_rule.policies.level_1"
-                     class="form-control"
-                     :class="{ 'is-invalid': submitted && $v.edit_variation.point_rule.policies.level_1.$error }"
-                     :placeholder="edit_variation.point_rule.policies.level_1"/>
+    <!--              <div v-if="submitted && !$v.edit_variation.point_rule.policies.client_superadmin.required"-->
+    <!--                   class="invalid-feedback">This value is required.-->
+    <!--              </div>-->
+    <!--            </div>-->
+    <!--          </div>-->
+    <!--          <div class="col-md-6">-->
+    <!--            <div class="form-group">-->
+    <!--              <label for="field-client_admin" class="control-label">{{$t("menuitems.organizations.user.client_admin")}}-->
+    <!--                <span class="text-danger">*</span>-->
+    <!--              </label>-->
+    <!--              <input type="number" id="field-client_admin" v-model="edit_variation.point_rule.policies.client_admin"-->
+    <!--                     class="form-control"-->
+    <!--                     :class="{ 'is-invalid': submitted && $v.edit_variation.point_rule.policies.client_admin.$error }"-->
+    <!--                     :placeholder="edit_variation.point_rule.policies.client_admin"/>-->
 
-              <div v-if="submitted && !$v.edit_variation.point_rule.policies.level_1.required" class="invalid-feedback">
-                This value is required.
-              </div>
-            </div>
-          </div>
-        </div>
-        <div class="row">
-          <div class="col-md-6">
-            <div class="form-group">
-              <label for="field-user_self" class="control-label">{{$t("menuitems.organizations.user.user_self")}}
-                <span class="text-danger">*</span>
-              </label>
-              <input type="number" id="field-user_self" v-model="edit_variation.point_rule.policies.user_self"
-                     class="form-control"
-                     :class="{ 'is-invalid': submitted && $v.edit_variation.point_rule.policies.user_self.$error }"
-                     :placeholder="edit_variation.point_rule.policies.user_self"/>
+    <!--              <div v-if="submitted && !$v.edit_variation.point_rule.policies.client_admin.required"-->
+    <!--                   class="invalid-feedback">This value is required.-->
+    <!--              </div>-->
+    <!--            </div>-->
+    <!--          </div>-->
+    <!--        </div>-->
+    <!--        <div class="row">-->
+    <!--          <div class="col-md-6">-->
+    <!--            <div class="form-group">-->
+    <!--              <label for="field-level_2" class="control-label">{{$t("menuitems.organizations.user.level_2")}}-->
+    <!--                <span class="text-danger">*</span>-->
+    <!--              </label>-->
+    <!--              <input type="number" id="field-level_2" v-model="edit_variation.point_rule.policies.level_2"-->
+    <!--                     class="form-control"-->
+    <!--                     :class="{ 'is-invalid': submitted && $v.edit_variation.point_rule.policies.level_2.$error }"-->
+    <!--                     :placeholder="edit_variation.point_rule.policies.level_2"/>-->
 
-              <div v-if="submitted && !$v.edit_variation.point_rule.policies.user_self.required" class="invalid-feedback">
-                This value is required.
-              </div>
-            </div>
-          </div>
-        </div>
-        <div class="form-group row">
-          <div class="col-8 offset-4">
-            <button type="submit" class="btn btn-primary">Submit</button>
-          </div>
-        </div>
-      </form>
+    <!--              <div v-if="submitted && !$v.edit_variation.point_rule.policies.level_2.required" class="invalid-feedback">-->
+    <!--                This value is required.-->
+    <!--              </div>-->
+    <!--            </div>-->
+    <!--          </div>-->
+    <!--          <div class="col-md-6">-->
+    <!--            <div class="form-group">-->
+    <!--              <label for="field-level_1" class="control-label">{{$t("menuitems.organizations.user.level_1")}}-->
+    <!--                <span class="text-danger">*</span>-->
+    <!--              </label>-->
+    <!--              <input type="number" id="field-level_1" v-model="edit_variation.point_rule.policies.level_1"-->
+    <!--                     class="form-control"-->
+    <!--                     :class="{ 'is-invalid': submitted && $v.edit_variation.point_rule.policies.level_1.$error }"-->
+    <!--                     :placeholder="edit_variation.point_rule.policies.level_1"/>-->
 
-    </b-modal>
+    <!--              <div v-if="submitted && !$v.edit_variation.point_rule.policies.level_1.required" class="invalid-feedback">-->
+    <!--                This value is required.-->
+    <!--              </div>-->
+    <!--            </div>-->
+    <!--          </div>-->
+    <!--        </div>-->
+    <!--        <div class="row">-->
+    <!--          <div class="col-md-6">-->
+    <!--            <div class="form-group">-->
+    <!--              <label for="field-user_self" class="control-label">{{$t("menuitems.organizations.user.user_self")}}-->
+    <!--                <span class="text-danger">*</span>-->
+    <!--              </label>-->
+    <!--              <input type="number" id="field-user_self" v-model="edit_variation.point_rule.policies.user_self"-->
+    <!--                     class="form-control"-->
+    <!--                     :class="{ 'is-invalid': submitted && $v.edit_variation.point_rule.policies.user_self.$error }"-->
+    <!--                     :placeholder="edit_variation.point_rule.policies.user_self"/>-->
+
+    <!--              <div v-if="submitted && !$v.edit_variation.point_rule.policies.user_self.required" class="invalid-feedback">-->
+    <!--                This value is required.-->
+    <!--              </div>-->
+    <!--            </div>-->
+    <!--          </div>-->
+    <!--        </div>-->
+    <!--        <div class="form-group row">-->
+    <!--          <div class="col-8 offset-4">-->
+    <!--            <button type="submit" class="btn btn-primary">Submit</button>-->
+    <!--          </div>-->
+    <!--        </div>-->
+    <!--      </form>-->
+
+    <!--    </b-modal>-->
 
     <!-- end row -->
   </div>

@@ -1,0 +1,276 @@
+<script>
+import {swalService} from "~/helpers/fakebackend/swal.service"
+import {mapState, mapGetters} from "vuex";
+
+export default {
+  name: "edit_product_variation_table",
+  props: ["variations", "product_id"],
+  components: {
+    Switches: () => import('vue-switches'),
+    "el-upload": () => import("element-ui/lib/upload"),
+    VariationModal: () => import('./VariationModal'),
+  },
+  data() {
+    return {
+      showVariationModal: false,
+      modeAdd: false,
+      edit_variation: {
+        price: 0,
+        purchase_price: 0,
+        name: "",
+        description: "",
+        variation_type: "",
+        inventory: 0,
+        point_rule: {
+          is_valid: false,
+          type: "amount",
+          policies: {
+            client_superadmin: 0,
+            client_admin: 0,
+            level_2: 0,
+            level_1: 0,
+            user_self: 0
+          },
+          special_promotion: {
+            is_valid: false,
+            bonus: 0
+          }
+        },
+      },
+    };
+  },
+  computed: {
+    ...mapGetters({
+      back_server: "system/getterBackServer"
+    }),
+    ...mapState({
+      categories: state => state.system.categories,
+    }),
+    introduction_point_total() {
+      if (this.edit_variation === undefined) {
+        return 0;
+      }
+      return parseInt(this.edit_variation.point_rule.policies.client_superadmin) + parseInt(this.edit_variation.point_rule.policies.client_admin) +
+        parseInt(this.edit_variation.point_rule.policies.level_2) + parseInt(this.edit_variation.point_rule.policies.level_1) +
+        parseInt(this.edit_variation.point_rule.policies.user_self)
+    },
+    profit() {
+      console.log(parseInt(this.edit_variation.price) - parseInt(this.edit_variation.purchase_price) - this.introduction_point_total)
+      console.log(this.edit_variation.point_rule.special_promotion.is_valid ? this.edit_variation.point_rule.special_promotion.bonus : 0)
+      let special_promotion_bonus = this.edit_variation.point_rule.special_promotion.is_valid ? this.edit_variation.point_rule.special_promotion.bonus : 0;
+
+      return parseInt(this.edit_variation.price) - parseInt(this.edit_variation.purchase_price) - this.introduction_point_total - special_promotion_bonus;
+    },
+    vendorlist() {
+      return this.$store.state.system.vendorlist;
+    },
+    csrftoken() {
+      return this.$store.state.auth.user.token;
+    },
+    sliderlist() {
+      return this.product.sliderimages.map(function (slider) {
+        return {url: slider.thumbimage_large, name: slider.http_referer, id: slider.id}
+      })
+    },
+  },
+  methods: {
+    switchAddVariationMode() {
+      this.modeAdd = true;
+      this.showVariationModal = true;
+    },
+    deleteVariation(variation_id) {
+      this.$emit("operateTable", {"command": "deleteVariation", "variation": variation_id})
+    },
+
+    editVariation(variation) {
+      console.log("edit variation", variation)
+      this.edit_variation = variation;
+      this.modeAdd = false;
+      this.showVariationModal = true;
+    },
+    getUploadVariationimageURL(id) {
+      return `${process.env.DJANGO_SERVER}/back/store/api/variations/${id}/update_image/`
+    },
+    beforeAvatarUpload(file) {
+      const isJPG = file.type === 'image/jpeg';
+      const isLt2M = file.size / 1024 / 1024 < 2;
+      if (!isLt2M || !isJPG) {
+        swalService.showModal("Invalid picture", "Should be JPEG and below 2M", "warning")
+        return false
+      }
+      return isJPG && isLt2M;
+      // return isJPG && isLt2M;
+    },
+    handleVariationImageSuccess(res, file) {
+      console.log(res)
+      if (res.result) {
+        let new_variation = res.data.variation;
+        this.$emit("operateTable", {"command": "replaceVariation", "variation": new_variation})
+      }
+    },
+
+    VariationOperate({modeAdd, _variation}) {
+      let vm = this;
+      console.log("_id VariationOperate identifier:", _variation);
+
+      if (!modeAdd) {
+        this.$emit("operateTable", {"command": "editVariation", "variation": _variation})
+        // }
+      } else {
+        this.$emit("operateTable", {"command": "addVariation", "variation": _variation})
+      }
+      vm.showVariationModal = false;
+    }
+  }
+};
+</script>
+<template>
+  <div class="row">
+    <div class="col-lg-12">
+      <div class="card">
+        <div class="card-body">
+          <div class="row">
+            <div class="col-lg-12">
+              <div class="card">
+                <div class="card-body">
+                  <div class="row">
+                    <div class="col-md-6">Available Variations</div>
+                    <div class="col-md-6">
+                      <button class="btn btn-warning mb-2 float-right" v-b-modal.modal_variation_component
+                              @click="switchAddVariationMode"><i
+                        class="mdi mdi-plus-circle mr-1"></i> Add Variation
+                      </button>
+                    </div>
+                  </div>
+                  <div class="row">
+                    <div class="table-responsive">
+                      <table class="table table-bordered table-centered mb-0">
+                        <thead class="thead-light">
+                        <tr>
+                          <th>name</th>
+                          <th>description</th>
+                          <th>Inventory</th>
+                          <th>price</th>
+                          <th>point_rule</th>
+                          <th></th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr v-for="variation in variations">
+                          <td class="text-center">
+                            {{ variation.name }} <br>
+                            <b-badge variant="primary" pill v-if="variation.variation_type==='REGULAR'">REGULAR
+                            </b-badge>
+                            <b-badge variant="warning" pill v-else>Pingo</b-badge>
+
+                            <el-upload
+                              class="avatar-uploader"
+                              :action="getUploadVariationimageURL(variation.id)"
+                              :show-file-list="false"
+                              :headers="{'Authorization':csrftoken}"
+                              :on-success="handleVariationImageSuccess"
+                              :before-upload="beforeAvatarUpload">
+                              <img v-if="variation.thumbimage" :src="variation.thumbimage|https_replace_localhost"
+                                   class="avatar">
+                              <i v-else class="el-icon-plus avatar-uploader-icon"></i>
+                            </el-upload>
+                          </td>
+                          <td>{{ variation.description.substr(0, 50) + "..." }}</td>
+                          <td class="text-center">{{ variation.inventory }}</td>
+                          <td class="text-right">
+                            <span class="d-block">{{ variation.price|currency("¥") }}</span>
+                            <span class="d-block">{{ variation.purchase_price|currency("¥") }}</span>
+                          </td>
+                          <td class="text-right">
+                            <h5>
+                              <span class="d-inline-block float-left">Introduction Point</span>
+                              <b-badge variant="success float-right" pill v-if="variation.point_rule.is_valid">on
+                              </b-badge>
+                              <b-badge variant="danger float-right" pill v-else>off</b-badge>
+                            </h5>
+                            <div class="clearfix"></div>
+                            <ul style="list-style-type: none;" v-if="variation.point_rule.is_valid">
+                              <li>
+                          <span
+                            class="inline-block text-right mr-3">{{
+                              $t("menuitems.organizations.user.client_superadmin")
+                            }}:</span>
+                                {{ variation.point_rule.policies.client_superadmin|currency("¥") }}
+                              </li>
+                              <li>
+                          <span
+                            class="inline-block text-right mr-3">{{
+                              $t("menuitems.organizations.user.client_admin")
+                            }}:</span>
+                                {{ variation.point_rule.policies.client_admin|currency("¥") }}
+                              </li>
+                              <li>
+                          <span
+                            class="inline-block text-right mr-3">{{
+                              $t("menuitems.organizations.user.level_2")
+                            }}:</span>{{
+                                  variation.point_rule.policies.level_2|currency("¥")
+                                }}
+                              </li>
+                              <li>
+                          <span
+                            class="inline-block text-right mr-3">{{
+                              $t("menuitems.organizations.user.level_1")
+                            }}:</span>{{
+                                  variation.point_rule.policies.level_1|currency("¥")
+                                }}
+                              </li>
+                              <li>
+                          <span
+                            class="inline-block text-right mr-3">{{
+                              $t("menuitems.organizations.user.user_self")
+                            }}:</span>{{
+                                  variation.point_rule.policies.user_self|currency("¥")
+                                }}
+                              </li>
+                            </ul>
+
+                            <h5>
+                              <span class="d-inline-block float-left">Spcial Promotion Bonus</span>
+                              <b-badge variant="success float-right" pill
+                                       v-if="variation.point_rule.special_promotion.is_valid">on
+                              </b-badge>
+                              <b-badge variant="danger float-right" pill v-else>off</b-badge>
+                            </h5>
+                            <div class="clearfix"></div>
+                            <ul style="list-style-type: none;" v-if="variation.point_rule.special_promotion.is_valid">
+                              <li>
+                          <span
+                            class="inline-block text-right mr-3">{{
+                              $t("menuitems.organizations.user.client_superadmin")
+                            }}:</span>
+                                {{ variation.point_rule.special_promotion.bonus|currency("¥") }}
+                              </li>
+                            </ul>
+                          </td>
+                          <td class="align-items-center">
+                            <a href="javascript:void(0);" @click="editVariation(variation)"
+                               v-b-modal.modal_variation_component
+                               class="action-icon">
+                              <i class="fe-edit"></i></a>
+                            <a href="javascript:void(0);" @click="deleteVariation(variation.id)" class="action-icon">
+                              <i class="fe-trash"></i></a>
+                          </td>
+                        </tr>
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <VariationModal @operateresult="VariationOperate" :showVariationModal="showVariationModal"
+                            :modeAdd="modeAdd"
+                            :edit_variation="edit_variation" :product_id="product_id"></VariationModal>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</template>
