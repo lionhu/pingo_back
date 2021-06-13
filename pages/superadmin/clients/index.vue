@@ -18,6 +18,7 @@ export default {
   components: {
     "el-table": () => import('element-ui/lib/table'),
     "el-table-column": () => import('element-ui/lib/table-column'),
+    "Client_PointPolicy":()=>import("../components/PointPolicyModal")
   },
   data() {
     return {
@@ -47,14 +48,15 @@ export default {
         "description": "",
         "admin_id": 1,
         "client_superadmin_id": 1
-      }
+      },
+      showEditClientPointPolicyModal:false,
+      edit_client:{}
     };
   },
   async asyncData({params}) {
     let url = `/apiauth/client/show_for_superadmin/`
     let response_data = await axios.$post(url)
       .then((response) => {
-        console.log(response)
         if (response.result) {
           return response.data
         }
@@ -142,6 +144,12 @@ export default {
         })
       }
     },
+    show_pointpolicy_client(client){
+      if(client){
+      this.edit_client = client;
+      this.showEditClientPointPolicyModal=true;
+      }
+    },
     async show_add_client() {
       let vm = this;
       const {value: formValues} = await Swal.fire({
@@ -180,19 +188,25 @@ export default {
     },
     handleSelectionChange(val) {
       this.multipleSelection = val;
-      console.log(this.multipleSelection)
     },
     superadminsRowClick(row, column, event) {
       let vm = this;
       let url = `/apiauth/client/${row.id}/of_superadmin/`
       axios.$post(url)
         .then((response) => {
-          console.log(response)
           if (response.result) {
             vm.clients = [];
             vm.clients = response.data.clients;
           }
         })
+    },
+    ProcessClientPointPolicy(result){
+      if (result) {
+            swalService.showToast("success", "client information has been update!")
+          }else{
+            swalService.showToast("error", "Failed to updated client information")
+      }
+      this.showEditClientPointPolicyModal=false;
     }
   },
   middleware: ['router-auth', 'router-superadmin'],
@@ -331,6 +345,10 @@ export default {
                           <i class="fe-edit-1"></i></a>
                       </li>
                       <li class="list-inline-item">
+                        <a href="javascript:void(0);" v-b-modal:modal_client_pointpolicy class="action-icon" @click="show_pointpolicy_client(scope.row)">
+                          <i class="ri-coin-fill text-warning"></i></a>
+                      </li>
+                      <li class="list-inline-item">
                         <a href="javascript:void(0);" class="action-icon" @click="remove_client(scope.row.id)"
                            v-if="scope.row.id!==1">
                           <i class="fe-trash-2"></i></a>
@@ -345,5 +363,6 @@ export default {
         </div>
       </div>
     </div>
+    <Client_PointPolicy @result="ProcessClientPointPolicy" :client="edit_client" :showEditClientPointPolicyModal="showEditClientPointPolicyModal"/>
   </div>
 </template>
