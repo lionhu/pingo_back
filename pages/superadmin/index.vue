@@ -61,7 +61,7 @@ export default {
 
     <div class="row">
       <div class="col-xl-12 col-lg-4">
-        <PointSummary/>
+<!--        <PointSummary/>-->
         <DescendantSummary/>
       </div>
       <div class="col-xl-12 col-lg-8">

@@ -24,6 +24,7 @@ export default {
     "el-table": () => import('element-ui/lib/table'),
     "el-table-column": () => import('element-ui/lib/table-column'),
     "el-date-picker": () => import('element-ui/lib/date-picker'),
+    "PointSummaryTrend":()=>import("@/components/widgets/PointSummary")
   },
   data() {
     return {
@@ -129,6 +130,7 @@ export default {
 <template>
   <div>
     <PageHeader :title="title" :items="items"/>
+    <PointSummaryTrend/>
     <div class="row">
       <div class="col-12">
         <div class="card">
