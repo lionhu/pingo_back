@@ -8,6 +8,7 @@ export default {
     DescendantSummary: () => import("@/components/widgets/DescendantSummary"),
     PointSummary: () => import("@/components/widgets/PointSummary"),
     VisitLogSummary: () => import("@/components/widgets/VisitLogSummary"),
+    UsersSummary: () => import("@/components/widgets/UsersSummary"),
   },
   middleware: ['router-auth', 'router-superadmin'],
   data() {
@@ -68,6 +69,8 @@ export default {
       </div>
 
     </div>
+
+    <UsersSummary/>
 
   </div>
 </template>

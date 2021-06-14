@@ -4,7 +4,7 @@ import {axios} from "@/plugins/axios"
 import VueApexCharts from "vue-apexcharts";
 
 export default {
-  name: "SuperAdmin_visitlog_summary",
+  name: "SuperAdmin_users_summary",
   components: {
     apexchart: () => import("vue-apexcharts"),
   },
@@ -33,14 +33,14 @@ export default {
   mounted() {
     let vm = this;
     console.log("mounted sync data")
-    let url = "/apiauth/logins/history_summary/";
+    let url = "/apiauth/users/register_summary/";
     axios.post(url).then(response => {
       console.log("response.data.data", response.data.data)
       if (response.data.result) {
 
-        var json_data = JSON.parse(response.data.data.json_login_summary)
+        var json_data = JSON.parse(response.data.data.json)
         vm.visitlogs = json_data.reduce(function (result, log) {
-          result.labels.push(log.visit_date.split("T")[0]);
+          result.labels.push(log.registered_date.split("T")[0]);
           result.series.push(result.total + log.count)
           result.total += log.count;
           return result
@@ -67,7 +67,7 @@ export default {
             curve: 'straight'
           },
           title: {
-            text: `Visit Logs Last Month (${response.data.data.source})`,
+            text: `user registed trend (${response.data.data.source})`,
             align: 'left'
           },
           grid: {
@@ -94,12 +94,35 @@ export default {
 </script>
 
 <template>
+  <div class="row">
+    <div class="col-xl-12 col-md-4">
 
-  <div class="card">
-    <div class="card-body">
-      <h5>Visit Summary</h5>
+      <div class="card">
+        <div class="card-body">
+          <div>
+            <h5 title="Campaign Sent" class="text-muted font-weight-normal mt-0 text-truncate">Users</h5>
+            <h3 class="my-2 py-1">
+              <span data-plugin="counterup">{{ total }}</span></h3>
+            <p class="mb-0 text-muted"><span class="text-success mr-2">
+                  <span class="mdi mdi-arrow-up-bold"></span>
+                        3.27%
+                    </span> <span class="text-nowrap">Since last month</span></p></div>
+          <div class="avatar-sm">
+                <span class="avatar-title bg-soft-primary rounded">
+                <i class="fe-users font-20 text-primary"></i></span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="col-xl-12 col-md-8">
 
-      <apexchart class="apex-charts" type="area" height="160" :series="series" :options="options"></apexchart>
+      <div class="card">
+        <div class="card-body">
+          <h5>User Register History</h5>
+
+          <apexchart class="apex-charts" type="area" height="160" :series="series" :options="options"></apexchart>
+        </div>
+      </div>
     </div>
   </div>
 </template>
