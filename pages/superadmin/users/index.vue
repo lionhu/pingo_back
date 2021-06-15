@@ -200,6 +200,7 @@ export default {
       })
     },
     user_moveto(user_id,username) {
+      console.log(user_id)
       Swal.fire({
         title: 'MoveTo User under Parent',
         input: 'number',
@@ -221,7 +222,7 @@ export default {
             })
             .catch(error => {
               Swal.showValidationMessage(
-                `Request failed: ${error}`
+                `Parent (#${parentID}) does not exist!`
               )
             })
         },
@@ -231,7 +232,7 @@ export default {
         if (result.isConfirmed) {
           Swal.fire({
             title: 'Are you sure?',
-            text: `MoveTo ${username} under ${parent.value.username}`,
+            text: `MoveTo ${username}(#${user_id}) under ${parent.value.username}(#${parent.value.id})`,
             icon: 'warning',
             showCancelButton: true,
             confirmButtonColor: '#3085d6',
@@ -241,6 +242,7 @@ export default {
             if (result.isConfirmed) {
               console.log(`MoveTo ${user_id} under ${parent.value.id}`)
               let url = `/apiauth/profile/${user_id}/moveto/`;
+              console.log(url,{"parent_id":parent.value.id})
               return this.$axios.post(url,{"parent_id":parent.value.id})
                 .then(response => {
                   if (response.data.result){
@@ -257,10 +259,10 @@ export default {
     },
     ClickNode(data, Node, ev) {
       console.log("ClickNode data", data)
-      console.log(data.username, data.id)
+      console.log(data.username, data.user_id)
       if (data.username !== "" && data.username !== "PINGO.JP" && data.username !== "wavus" && parseInt(data.id)) {
         this.user.username = data.username;
-        this.user.id = data.id;
+        this.user.id = data.user_id;
         this.user_selected = true;
       } else {
         this.user.username = "";
