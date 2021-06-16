@@ -236,11 +236,11 @@ export default {
                   <template slot-scope="scope">
                     {{ '#' + scope.row.id }} <br>
                     <nuxt-link :to="'/superadmin/orders/' + scope.row.order_id" class="action-iconk">
-                      <b-badge variant="primary" pill v-if="scope.row.type==='REGULAR'">REGULAR (#{{
+                      <b-badge variant="primary" pill v-if="scope.row.order_type==='REGULAR'">R (#{{
                           scope.row.order_id
                         }})
                       </b-badge>
-                      <b-badge variant="warning" pill v-else>Pingo(#{{ scope.row.order_id }})</b-badge>
+                      <b-badge variant="warning" pill v-else>P(#{{ scope.row.order_id }})</b-badge>
                     </nuxt-link>
                   </template>
                 </el-table-column>
