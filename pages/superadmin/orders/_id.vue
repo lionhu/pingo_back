@@ -5,7 +5,7 @@ import Swal from 'sweetalert2'
 import {swalService} from "@/helpers/fakebackend/swal.service";
 
 export default {
-  name:"order_detail",
+  name: "order_detail",
   head() {
     return {
       title: `${this.title} | Pingo - Order`,
@@ -18,7 +18,7 @@ export default {
     };
   },
   components: {
-    DeliveryModal:()=>import("../widgets/modal_delivery"),
+    DeliveryModal: () => import("../widgets/modal_delivery"),
     "el-table": () => import('element-ui/lib/table'),
     "el-table-column": () => import('element-ui/lib/table-column'),
   },
@@ -55,7 +55,7 @@ export default {
       edit_orderitem: {}
     };
   },
-  middleware: ['router-auth','router-superadmin'],
+  middleware: ['router-auth', 'router-superadmin'],
   computed: {
     ...mapGetters({
       // "order": "orders/gettersSuperadminOrder"
@@ -68,6 +68,10 @@ export default {
     },
     total_margin() {
       return this.board_margins.reduce((prev, current) => prev + current.amount, 0)
+    },
+    profit() {
+      var order_use_point = this.order.point_usage.apply_point ? this.order.point_usage.use_point : 0;
+      return this.order.Total - this.order.TotalPurchasePrice - this.total_margin - order_use_point;
     },
     board_margins() {
       return this.margins.filter(margin => parseInt(margin.info.orderitem_id))
@@ -98,15 +102,15 @@ export default {
       this.edit_orderitem = orderitem
       this.showmodel_delivery = true
     },
-    UpdateOrderItem(response){
-      console.log("UpdateOrderItem",response)
+    UpdateOrderItem(response) {
+      console.log("UpdateOrderItem", response)
 
-      if(response.result){
-        let newItem=response.orderitems[0];
-        let itemIndex=this.order.orderitems.findIndex(item=>item.id==newItem.id)
-        if(itemIndex>-1){
-          this.order.orderitems.splice(itemIndex,1,newItem)
-          swalService.showToast("success",`Item #${newItem.id} delivery info has beedn updated!`)
+      if (response.result) {
+        let newItem = response.orderitems[0];
+        let itemIndex = this.order.orderitems.findIndex(item => item.id == newItem.id)
+        if (itemIndex > -1) {
+          this.order.orderitems.splice(itemIndex, 1, newItem)
+          swalService.showToast("success", `Item #${newItem.id} delivery info has beedn updated!`)
         }
       }
       // this.order=result.order
@@ -124,7 +128,7 @@ export default {
     async updateMargin(margin_id) {
       let vm = this;
       const {value: amount} = await Swal.fire({
-        icon:"question",
+        icon: "question",
         title: 'Enter amount',
         input: 'text',
         showCancelButton: true,
@@ -156,7 +160,7 @@ export default {
 </script>
 
 <style>
-.font-16{
+.font-16 {
   font-size: 1.5rem;
 }
 </style>
@@ -285,7 +289,7 @@ export default {
                                   <div class="card-body">
                                     <a href="javascript:void(0);" v-b-modal.modal-delivery class="card-link text-custom"
                                        @click="showDeliveryModal(props.row)">Update Info</a>
-<!--                                    <a href="javascript:void(0);" class="card-link text-custom">Another link</a>-->
+                                    <!--                                    <a href="javascript:void(0);" class="card-link text-custom">Another link</a>-->
                                   </div>
                                 </div>
                               </div>
@@ -375,7 +379,7 @@ export default {
                         </thead>
                         <tbody>
                         <tr>
-                          <th scope="row">Sub Total :</th>
+                          <th scope="row">Subtotal</th>
                           <td>
                             <span class="d-block ">{{ order.Total|currency("¥") }}</span>
                             <span class="badge badge-outline-danger badge-secondary">{{
@@ -383,26 +387,8 @@ export default {
                               }}</span>
                           </td>
                         </tr>
-                        <tr>
-                          <th scope="row"> Tax({{ order.Tax_rate }}%) :</th>
-                          <td>
-                            <span class="d-block ">{{ order.Tax|currency("¥") }}</span>
-                            <span class="badge badge-outline-danger badge-secondary">{{
-                                order.PurchasePriceTax|currency("¥")
-                              }}</span>
-                          </td>
-                        </tr>
-                        <tr>
-                          <th scope="row">Total :</th>
-                          <td>
-                            <span class="d-block ">{{ order.TaxedTotal|currency("¥") }}</span>
-                            <span class="badge badge-outline-danger badge-secondary">{{
-                                order.TaxedTotalPurchasePrice|currency("¥")
-                              }}</span>
-                          </td>
-                        </tr>
                         <tr v-if="pointUSE.apply_point">
-                          <th scope="row">Use Point :</th>
+                          <th scope="row">Use Point</th>
                           <td>
                             <span class="badge badge-outline-primary badge-secondary">{{
                                 pointUSE.use_point|currency("¥")
@@ -410,9 +396,9 @@ export default {
                           </td>
                         </tr>
                         <tr>
-                          <th scope="row">Profit :</th>
+                          <th scope="row">Profit</th>
                           <td class="bg-danger text-white text-center font-16">
-                            {{ order.TaxedTotal - order.TaxedTotalPurchasePrice|currency("¥") }}
+                            {{ profit|currency("¥") }}
                           </td>
                         </tr>
                         </tbody>
@@ -493,7 +479,7 @@ export default {
                     prop="amount">
                     <template slot-scope="scope">
 
-                     <i :class="{'ri-user-voice-fill text-danger':scope.row.info.level==='SUPERADMIN',
+                      <i :class="{'ri-user-voice-fill text-danger':scope.row.info.level==='SUPERADMIN',
                                   'ri-team-fill  text-warning':scope.row.info.level==='CLIENTADMIN',
                                   'ri-user-heart-line  text-primary':scope.row.info.level==='LEVEL_1',
                                   'ri-parent-fill  text-success':scope.row.info.level==='LEVEL_2',}"></i>
