@@ -210,7 +210,7 @@ export default {
                       <i class="ri-hashtag h2 m-0 text-muted"></i>
                     </div>
                     <div class="media-body">
-                      <p class="mb-1">ID No.</p>
+                      <p class="mb-1">注文番号No.</p>
                       <h5 class="mt-0">
                         #{{ order.id }}
                       </h5>
@@ -223,7 +223,7 @@ export default {
                       <i class="ri-user-2-line h2 m-0 text-muted"></i>
                     </div>
                     <div class="media-body">
-                      <p class="mb-1">Username</p>
+                      <p class="mb-1">ユーザー</p>
                       <h5 class="mt-0">
                         {{ order.user }}
                       </h5>
@@ -236,7 +236,7 @@ export default {
                       <i class="ri-calendar-event-line h2 m-0 text-muted"></i>
                     </div>
                     <div class="media-body">
-                      <p class="mb-1">Date</p>
+                      <p class="mb-1">日付</p>
                       <h5 class="mt-0">
                         {{ order.ordered_date |short_date }} <small
                         class="text-muted">{{ order.ordered_date|short_time }}</small>
@@ -261,7 +261,7 @@ export default {
             </div>
 
             <div class="mt-2">
-              <h4 class="header-title mb-3">Items from Order #{{ order.id }}</h4>
+              <h4 class="header-title mb-3">注文商品一覧 #{{ order.id }}</h4>
               <div class="row">
                 <div class="col-12">
                   <div>
@@ -273,6 +273,14 @@ export default {
                         <el-table-column type="expand">
                           <template slot-scope="props">
                             <div class="row mb-3">
+                              <div class="col-lg-6">
+
+                              <div class="media-body">
+                                <h5 class="m-0">商品名：</h5>
+                                <p class="mb-0">{{ props.row.item.item_name }}(#{{ props.row.id }})</p>
+                              </div>
+
+                              </div>
                               <div class="col-lg-6">
 
                                 <div>
@@ -314,26 +322,23 @@ export default {
                                   </div>
                                 </div>
                               </div>
-                              <div class="col-lg-6">
-                              </div>
                             </div>
                           </template>
                         </el-table-column>
-                        <el-table-column label="Product" width="260">
+                        <el-table-column label="商品" width="260">
                           <template slot-scope="scope">
                             <div class="media align-items-center">
                               <div class="mr-3">
-                                <img :src="scope.row.variant.thumbimage" alt="product-img" height="40"/>
+                                <img :src="scope.row.variant.thumbimage" alt="product-img" height="160"/>
                               </div>
                               <div class="media-body">
-                                <h5 class="m-0">{{ scope.row.item.item_name }}(#{{ scope.row.id }})</h5>
                                 <p class="mb-0">X {{ scope.row.quantity }}</p>
                               </div>
                             </div>
                           </template>
                         </el-table-column>
                         <el-table-column
-                          label="Price"
+                          label="単価"
                           prop="variant.price">
                           <template slot-scope="scope">
                             <span class="d-block ">{{ scope.row.variant.price|currency("¥") }}</span>
@@ -342,7 +347,7 @@ export default {
                           </template>
                         </el-table-column>
                         <el-table-column
-                          label="Total">
+                          label="合計">
                           <template slot-scope="scope">
                             <span class="d-block ">{{
                                 scope.row.variant.price * scope.row.quantity|currency("¥")
@@ -350,7 +355,7 @@ export default {
                           </template>
                         </el-table-column>
                         <el-table-column
-                          label="Status"
+                          label="ステータス"
                           align="center"
                         >
                           <template slot-scope="scope">
@@ -366,7 +371,7 @@ export default {
                           </template>
                         </el-table-column>
                         <el-table-column
-                          label="Delivered">
+                          label="配送">
                           <template slot-scope="scope">
                               <span class="badge"
                                     :class="{'text-danger': !scope.row.delivered ,
@@ -376,7 +381,7 @@ export default {
                           </template>
                         </el-table-column>
                         <el-table-column
-                          label="Paid">
+                          label="支払">
                           <template slot-scope="scope">
                               <span class="badge"
                                     :class="{'text-danger': !scope.row.paid ,'text-success': scope.row.paid}">
@@ -398,8 +403,8 @@ export default {
 
           <div class="col-lg-8">
             <div>
-              <h4 class="font-15 mb-2">Margin Board
-                <span class="badge badge-outline-danger badge-secondary float-right">
+              <h4 class="font-15 mb-2">ポイント付与一覧
+                <span class="badge badge-outline-danger badge-warning float-right">
                   {{ total_margin|currency("¥") }}</span>
               </h4>
 
@@ -465,12 +470,12 @@ export default {
           </div>
           <div class="col-lg-4">
             <div>
-              <h4>Order Summary</h4>
+              <h4>注文概要</h4>
               <div class="table-responsive">
                 <table class="table table-centered border mb-0">
                   <thead class="bg-light">
                   <tr>
-                    <th colspan="3">Order summary</th>
+                    <th colspan="3">サマリー</th>
                   </tr>
                   </thead>
                   <tbody>
@@ -544,7 +549,7 @@ export default {
           </div>
           <div class="col-6">
             <div>
-              <h4 class="font-15 mb-2">Billing Information</h4>
+              <h4 class="font-15 mb-2">クレジットカード決済情報</h4>
 
               <div class="card p-2 mb-lg-0">
                 {{ order.payment_info }}
