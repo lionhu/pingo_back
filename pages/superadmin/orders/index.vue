@@ -350,12 +350,12 @@ export default {
                   <template slot-scope="scope">
                     <ul class="list-inline table-action m-0">
                       <li class="list-inline-item">
-                        <nuxt-link :to="'/superadmin/orders/' + scope.row.id" class="action-iconk">
+                        <nuxt-link :to="'/superadmin/orders/' + scope.row.id" class="action-icon text-success">
                           <i class="fe-edit"></i></nuxt-link>
 
                       </li>
-                      <li class="list-inline-item">
-                        <a href="javascript:void(0);" class="action-icon" @click="removeOrder(scope.row.id)">
+                      <li class="list-inline-item" v-if="!scope.row.is_paid">
+                        <a href="javascript:void(0);" class="action-icon text-danger" @click="removeOrder(scope.row.id)">
                           <i class="fe-trash"></i></a>
                       </li>
                     </ul>
