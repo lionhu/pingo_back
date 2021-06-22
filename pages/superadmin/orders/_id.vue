@@ -154,6 +154,22 @@ export default {
           })
       }
     },
+    updateMargin_valid(margin_id, valid_flag) {
+      let vm = this;
+      let info = {
+        id: margin_id,
+        is_valid: valid_flag
+      }
+      this.$store.dispatch("margins/updateMargin_superadmin", info)
+        .then(resolve => {
+          var new_margin = resolve.margin;
+          let index = vm.margins.findIndex(margin => margin.id === margin_id);
+          if (index > -1) {
+            vm.margins.splice(index, 1, new_margin)
+            swalService.showToast("success", `margin_id ${margin_id} new status ${new_margin.is_valid}`)
+          }
+        })
+    },
   }
 
 };
@@ -182,6 +198,11 @@ export default {
           </div>
           <div class="card-body">
             <div>
+
+              <h5 v-if="order.message!==''">Message from Customer: </h5>
+              <b-alert show dismissible class="bg-danger text-white border-0 mb-2" v-if="order.message!==''">
+                {{ order.message }}
+              </b-alert>
               <div class="row">
                 <div class="col-lg-3 col-sm-6">
                   <div class="media mb-2">
@@ -229,7 +250,7 @@ export default {
                       <i class="fe-git-merge h2 m-0 text-muted"></i>
                     </div>
                     <div class="media-body">
-                      <p class="mb-1">Margins</p>
+                      <p class="mb-1">ポイント付与</p>
                       <h5 class="mt-0">
                         {{ total_margin|currency("¥") }}
                       </h5>
@@ -242,7 +263,7 @@ export default {
             <div class="mt-2">
               <h4 class="header-title mb-3">Items from Order #{{ order.id }}</h4>
               <div class="row">
-                <div class="col-lg-8">
+                <div class="col-12">
                   <div>
                     <div class="table-responsive">
                       <el-table
@@ -255,7 +276,7 @@ export default {
                               <div class="col-lg-6">
 
                                 <div>
-                                  <h4 class="font-15 mb-2">Delivery Info</h4>
+                                  <h4 class="font-15 mb-2">配送情報</h4>
 
                                   <div class="card p-2 mb-lg-0" v-if="props.row.delivered">
                                     <div class="text-center">
@@ -279,16 +300,16 @@ export default {
                                       </div>
                                     </div>
                                   </div>
-                                  <div class="card p-2 mb-lg-0" v-else>
-                                    <div class="text-center">
-                                      <div class="my-2">
-                                        <i class="fe-track font-16 text-muted"></i>
-                                      </div>
-                                    </div>
-                                  </div>
+<!--                                  <div class="card p-2 mb-lg-0" v-else>-->
+<!--                                    <div class="text-center">-->
+<!--                                      <div class="my-2">-->
+<!--                                        <i class="fe-track font-16 text-muted"></i>-->
+<!--                                      </div>-->
+<!--                                    </div>-->
+<!--                                  </div>-->
                                   <div class="card-body">
                                     <a href="javascript:void(0);" v-b-modal.modal-delivery class="card-link text-custom"
-                                       @click="showDeliveryModal(props.row)">Update Info</a>
+                                       @click="showDeliveryModal(props.row)">情報更新</a>
                                     <!--                                    <a href="javascript:void(0);" class="card-link text-custom">Another link</a>-->
                                   </div>
                                 </div>
@@ -367,45 +388,6 @@ export default {
                     </div>
                   </div>
                 </div>
-
-                <div class="col-lg-4">
-                  <div>
-                    <div class="table-responsive">
-                      <table class="table table-centered border mb-0">
-                        <thead class="bg-light">
-                        <tr>
-                          <th colspan="3">Order summary</th>
-                        </tr>
-                        </thead>
-                        <tbody>
-                        <tr>
-                          <th scope="row">Subtotal</th>
-                          <td>
-                            <span class="d-block ">{{ order.Total|currency("¥") }}</span>
-                            <span class="badge badge-outline-danger badge-secondary">{{
-                                order.TotalPurchasePrice|currency("¥")
-                              }}</span>
-                          </td>
-                        </tr>
-                        <tr v-if="pointUSE.apply_point">
-                          <th scope="row">Use Point</th>
-                          <td>
-                            <span class="badge badge-outline-primary badge-secondary">{{
-                                pointUSE.use_point|currency("¥")
-                              }}</span>
-                          </td>
-                        </tr>
-                        <tr>
-                          <th scope="row">Profit</th>
-                          <td class="bg-danger text-white text-center font-16">
-                            {{ profit|currency("¥") }}
-                          </td>
-                        </tr>
-                        </tbody>
-                      </table>
-                    </div>
-                  </div>
-                </div>
               </div>
             </div>
           </div>
@@ -413,9 +395,124 @@ export default {
         <!-- end card -->
 
         <div class="row mb-3">
+
+          <div class="col-lg-8">
+            <div>
+              <h4 class="font-15 mb-2">Margin Board
+                <span class="badge badge-outline-danger badge-secondary float-right">
+                  {{ total_margin|currency("¥") }}</span>
+              </h4>
+
+              <div class="card p-2 mb-lg-0">
+                <el-table
+                  class="table table-centered border table-nowrap mb-lg-0"
+                  :data="board_margins"
+                  :default-sort="{prop: 'user', order: 'descending'}"
+                  style="width: 100%">
+                  <el-table-column label="User" sortable prop="user">
+                    <template slot-scope="scope">
+                      {{ scope.row.user }}
+                      <i :class="{'ri-user-voice-fill text-danger':scope.row.info.level==='SUPERADMIN',
+                                  'ri-team-fill  text-warning':scope.row.info.level==='CLIENTADMIN',
+                                  'ri-user-heart-line  text-primary':scope.row.info.level==='LEVEL_1',
+                                  'ri-map-pin-user-fill  text-default':scope.row.info.level==='USER_SELF',
+                                  'ri-parent-fill  text-success':scope.row.info.level==='LEVEL_2',}"></i>
+                      <br>
+                      (#{{ scope.row.id }})
+                    </template>
+                  </el-table-column>
+                  <el-table-column
+                    label="Amount"
+                    align="right"
+                    prop="amount">
+                    <template slot-scope="scope">
+                      <a href="javascript:void(0);" @click="updateMargin(scope.row.id)">
+                        {{ scope.row.amount|currency("¥") }}
+                      </a>
+                    </template>
+                  </el-table-column>
+                  <el-table-column
+                    label="OrderItem"
+                    align="right"
+                    sortable
+                    prop="info.orderitem_id">
+                    <template slot-scope="scope">
+
+                      <a href="javascript:void(0);" @click="deleteMargin(scope.row.id)">
+                        #{{ scope.row.info.orderitem_id }}
+                      </a>
+                    </template>
+                  </el-table-column>
+                  <el-table-column
+                    label="OrderItem"
+                    align="right"
+                    sortable
+                    prop="is_valid">
+                    <template slot-scope="scope">
+                      <a href="javascript:void(0);" @click="updateMargin_valid(scope.row.id, false)"
+                         v-if="scope.row.is_valid">
+                        <i class="ri-checkbox-circle-fill text-success"></i>
+                      </a>
+
+                      <a href="javascript:void(0);" @click="updateMargin_valid(scope.row.id, true)" v-else>
+                        <i class="ri-close-circle-fill text-danger"></i>
+                      </a>
+                    </template>
+                  </el-table-column>
+                </el-table>
+              </div>
+            </div>
+          </div>
           <div class="col-lg-4">
             <div>
-              <h4 class="font-15 mb-2">Shipping Information</h4>
+              <h4>Order Summary</h4>
+              <div class="table-responsive">
+                <table class="table table-centered border mb-0">
+                  <thead class="bg-light">
+                  <tr>
+                    <th colspan="3">Order summary</th>
+                  </tr>
+                  </thead>
+                  <tbody>
+                  <tr>
+                    <th scope="row">売上</th>
+                    <td class="text-right">
+                      <span class="d-block ">{{ order.Total|currency("¥") }}</span>
+                      <div v-if="pointUSE.apply_point">
+                        <p><i class="ri-bank-card-line text-success"></i>:{{ order.chargeAmount |currency("¥")}}<br>
+                          <i class="ri-refund-2-fill text-danger"></i>:{{ pointUSE.use_point|currency("¥") }}</p>
+                      </div>
+                    </td>
+                  </tr>
+                  <tr>
+                    <th scope="row">仕入</th>
+                    <td class="text-right">
+                      <span class="d-block ">-{{ order.TotalPurchasePrice|currency("¥") }}</span>
+                    </td>
+                  </tr>
+                  <tr>
+                    <th scope="row">ポイント付与</th>
+                    <td class="text-right">
+                      <span class="d-block ">-{{ total_margin|currency("¥") }}</span>
+                    </td>
+                  </tr>
+                  <tr>
+                    <th scope="row">Profit</th>
+                    <td class="bg-danger text-white text-center font-16">
+                      {{ profit|currency("¥") }}
+                    </td>
+                  </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+        </div>
+        <div class="row mb-3">
+          <div class="col-6">
+            <div>
+              <h4 class="font-15 mb-2">郵送先情報</h4>
 
               <div class="card p-2 mb-lg-0">
                 <table class="table table-borderless table-sm mb-0">
@@ -445,63 +542,12 @@ export default {
               </div>
             </div>
           </div>
-          <div class="col-lg-4">
+          <div class="col-6">
             <div>
               <h4 class="font-15 mb-2">Billing Information</h4>
 
               <div class="card p-2 mb-lg-0">
                 {{ order.payment_info }}
-              </div>
-            </div>
-          </div>
-
-          <div class="col-lg-4">
-            <div>
-              <h4 class="font-15 mb-2">Margin Board
-                <span class="badge badge-outline-danger badge-secondary float-right">
-                  {{ total_margin|currency("¥") }}</span>
-              </h4>
-
-              <div class="card p-2 mb-lg-0">
-                <el-table
-                  class="table table-centered border table-nowrap mb-lg-0"
-                  :data="board_margins"
-                  :default-sort="{prop: 'user', order: 'descending'}"
-                  style="width: 100%">
-                  <el-table-column label="User" sortable prop="user">
-                    <template slot-scope="scope">
-                      {{ scope.row.user }}(#{{ scope.row.id }})
-                    </template>
-                  </el-table-column>
-                  <el-table-column
-                    label="Amount"
-                    align="right"
-                    prop="amount">
-                    <template slot-scope="scope">
-
-                      <i :class="{'ri-user-voice-fill text-danger':scope.row.info.level==='SUPERADMIN',
-                                  'ri-team-fill  text-warning':scope.row.info.level==='CLIENTADMIN',
-                                  'ri-user-heart-line  text-primary':scope.row.info.level==='LEVEL_1',
-                                  'ri-parent-fill  text-success':scope.row.info.level==='LEVEL_2',}"></i>
-
-                      <a href="javascript:void(0);" @click="updateMargin(scope.row.id)">
-                        {{ scope.row.amount|currency("¥") }}
-                      </a>
-                    </template>
-                  </el-table-column>
-                  <el-table-column
-                    label="OrderItem"
-                    align="right"
-                    sortable
-                    prop="info.orderitem_id">
-                    <template slot-scope="scope">
-
-                      <a href="javascript:void(0);" @click="deleteMargin(scope.row.id)">
-                        #{{ scope.row.info.orderitem_id }}
-                      </a>
-                    </template>
-                  </el-table-column>
-                </el-table>
               </div>
             </div>
           </div>

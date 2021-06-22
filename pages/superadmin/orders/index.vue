@@ -19,7 +19,7 @@ export default {
     "el-table": () => import('element-ui/lib/table'),
     "el-table-column": () => import('element-ui/lib/table-column'),
     "el-date-picker": () => import('element-ui/lib/date-picker'),
-    PayVendorModal:()=>import("../widgets/modal_payVendor")
+    PayVendorModal: () => import("../widgets/modal_payVendor")
   },
   data() {
     return {
@@ -52,8 +52,8 @@ export default {
       order_type: ""
     };
   },
-  watch:{
-    order_type:(oldvalue,newvalue)=>{
+  watch: {
+    order_type: (oldvalue, newvalue) => {
       console.log(newvalue)
     }
   },
@@ -61,8 +61,8 @@ export default {
     ...mapGetters({
       "orders": "orders/gettersSuperadminOrderList"
     }),
-    display_list(){
-      return this.orders.filter(order=>order.type===this.order_type)
+    display_list() {
+      return this.orders.filter(order => order.type === this.order_type)
     }
   },
   methods: {
@@ -101,10 +101,10 @@ export default {
         Swal.fire("Warning", "you have to choose more than one", "warning")
       }
     },
-    batch_RemoveOrders(){
+    batch_RemoveOrders() {
       var selected_num = this.multipleSelection.length;
       if (selected_num > 0) {
-          this.$store.dispatch("orders/batch_removeOrders_superadmin",this.multipleSelection)
+        this.$store.dispatch("orders/batch_removeOrders_superadmin", this.multipleSelection)
       } else {
         Swal.fire("Warning", "you have to choose more than one", "warning")
       }
@@ -148,7 +148,7 @@ export default {
 };
 </script>
 <style>
-.font-16{
+.font-16 {
   font-size: 1.5rem;
 }
 </style>
@@ -188,7 +188,8 @@ export default {
                     <a href="javascript:void(0);" @click="batch_updateOrderStatus">Update Status</a>
                   </b-dropdown-item>
                   <b-dropdown-item>
-                    <a href="javascript:void(0);" @click="batch_RemoveOrders"><i class="fe-trash-2 text-danger"></i> Remove Orders</a>
+                    <a href="javascript:void(0);" @click="batch_RemoveOrders"><i class="fe-trash-2 text-danger"></i>
+                      Remove Orders</a>
                   </b-dropdown-item>
                 </b-dropdown>
               </div>
@@ -240,9 +241,9 @@ export default {
         <div class="card">
           <div class="card-body">
             <div class="d-flex justify-content-between">
-                <b-button variant="primary" @click="setOrderType('REGULAR')">Normal Orders</b-button>
-                <span>{{display_list.length}} orders</span>
-                <b-button variant="success" class="float-right" @click="setOrderType('PINGO')">Pingo Orders</b-button>
+              <b-button variant="primary" @click="setOrderType('REGULAR')">Normal Orders</b-button>
+              <span>{{ display_list.length }} orders</span>
+              <b-button variant="success" class="float-right" @click="setOrderType('PINGO')">Pingo Orders</b-button>
             </div>
             <div class="table-responsive mb-0">
               <el-table
@@ -252,13 +253,28 @@ export default {
               >
                 <el-table-column
                   type="selection"
-                  width="55">
+                  width="30">
+                </el-table-column>
+
+                <el-table-column type="expand">
+                  <template slot-scope="props">
+                    <div v-if="props.row.message!==''">
+                      <h4>Message</h4>
+                      <blockquote class="blockquote">
+                        <p class="mb-0">{{props.row.message}}</p>
+                        <footer class="blockquote-footer">
+                          From <cite title="Source Title">{{props.row.user}}</cite>
+                        </footer>
+                      </blockquote>
+                    </div>
+                  </template>
                 </el-table-column>
                 <el-table-column label="ID" sortable prop="id">
                   <template slot-scope="scope">
-                    {{ '#' + scope.row.id }} <br>
+                    {{ '#' + scope.row.id }}<i class=" ri-message-2-fill text-danger" v-if="scope.row.message!==''"></i>
+                    <br>
                     <b-badge variant="primary" pill v-if="scope.row.type==='REGULAR'">REGULAR</b-badge>
-                        <b-badge variant="warning" pill v-else>Pingo</b-badge>
+                    <b-badge variant="warning" pill v-else>Pingo</b-badge>
                   </template>
                 </el-table-column>
                 <el-table-column
@@ -279,7 +295,7 @@ export default {
                   sortable
                   prop="TaxedTotal">
                   <template slot-scope="scope">
-                    {{ scope.row.TaxedTotal | currency("¥") }}
+                    {{ scope.row.Total | currency("¥") }}
                   </template>
                 </el-table-column>
 
