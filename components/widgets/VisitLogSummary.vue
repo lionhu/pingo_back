@@ -98,7 +98,6 @@ export default {
   <div class="card">
     <div class="card-body">
       <h5>Visit Summary</h5>
-
       <apexchart class="apex-charts" type="area" height="160" :series="series" :options="options"></apexchart>
     </div>
   </div>

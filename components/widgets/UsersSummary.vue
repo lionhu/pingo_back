@@ -94,35 +94,12 @@ export default {
 </script>
 
 <template>
-  <div class="row">
-    <div class="col-xl-12 col-md-4">
 
-      <div class="card">
-        <div class="card-body">
-          <div>
-            <h5 title="Campaign Sent" class="text-muted font-weight-normal mt-0 text-truncate">Users</h5>
-            <h3 class="my-2 py-1">
-              <span data-plugin="counterup">{{ total }}</span></h3>
-            <p class="mb-0 text-muted"><span class="text-success mr-2">
-                  <span class="mdi mdi-arrow-up-bold"></span>
-                        3.27%
-                    </span> <span class="text-nowrap">Since last month</span></p></div>
-          <div class="avatar-sm">
-                <span class="avatar-title bg-soft-primary rounded">
-                <i class="fe-users font-20 text-primary"></i></span>
-          </div>
-        </div>
-      </div>
-    </div>
-    <div class="col-xl-12 col-md-8">
+  <div class="card">
+    <div class="card-body">
+      <h5>User Register History</h5>
 
-      <div class="card">
-        <div class="card-body">
-          <h5>User Register History</h5>
-
-          <apexchart class="apex-charts" type="area" height="160" :series="series" :options="options"></apexchart>
-        </div>
-      </div>
+      <apexchart class="apex-charts" type="area" height="160" :series="series" :options="options"></apexchart>
     </div>
   </div>
 </template>
