@@ -26,6 +26,22 @@ export default {
       ]
     };
   },
+  mounted() {
+    const param_product=this.$route.params.product;
+    if (param_product!==undefined){
+      this.product.item_name=param_product.item_name;
+      this.product.type=param_product.type;
+      this.product.rate=param_product.rate;
+      this.product.is_valid=param_product.is_valid;
+      this.product.label=param_product.label;
+      this.product.brand=param_product.brand;
+      this.product.series=param_product.series;
+      this.product.model=param_product.model;
+      this.product.video_url=param_product.video_url;
+      this.product.category=param_product.category;
+      this.product.vendor=param_product.vendor;
+    }
+  },
   components: {
     FormWizard,
     TabContent,
@@ -57,16 +73,16 @@ export default {
         },
       ],
       editor: ClassicEditor,
-      editorData: "<p>Content of the editor.</p>",
-      dropzoneOptions: {
-        url: "https://httpbin.org/post",
-        thumbnailWidth: 150,
-        maxFilesize: 0.5,
-        headers: {
-          "My-Awesome-Header": "header value",
-        },
-        previewTemplate: this.template(),
-      },
+      // editorData: "<p>Content of the editor.</p>",
+      // dropzoneOptions: {
+      //   url: "https://httpbin.org/post",
+      //   thumbnailWidth: 150,
+      //   maxFilesize: 0.5,
+      //   headers: {
+      //     "My-Awesome-Header": "header value",
+      //   },
+      //   previewTemplate: this.template(),
+      // },
       labels: [
         {value: 'N', label: 'New'},
         {value: 'BS', label: 'Best Seller'}
@@ -144,29 +160,29 @@ export default {
       let index = val.length - 1;
       this.product.category.id = val[index]
     },
-    template: function () {
-      return ` <div class="dropzone-previews mt-3">
-            <div class="card mt-1 mb-0 shadow-none border">
-                <div class="p-2">
-                    <div class="row align-items-center">
-                        <div class="col-auto">
-                            <img data-dz-thumbnail src="#" class="avatar-sm rounded bg-light" alt="">
-                        </div>
-                        <div class="col pl-0">
-                            <a href="javascript:void(0);" class="text-muted font-weight-bold" data-dz-name></a>
-                            <p class="mb-0" data-dz-size></p>
-                        </div>
-                        <div class="col-auto">
-      <a href="" class="btn btn-link btn-lg text-muted" data-dz-remove>
-      <i class="fe-x"></i>
-      </a>
-      </div>
-      </div>
-      </div>
-      </div>
-      </div>
-      `;
-    },
+    // template: function () {
+    //   return ` <div class="dropzone-previews mt-3">
+    //         <div class="card mt-1 mb-0 shadow-none border">
+    //             <div class="p-2">
+    //                 <div class="row align-items-center">
+    //                     <div class="col-auto">
+    //                         <img data-dz-thumbnail src="#" class="avatar-sm rounded bg-light" alt="">
+    //                     </div>
+    //                     <div class="col pl-0">
+    //                         <a href="javascript:void(0);" class="text-muted font-weight-bold" data-dz-name></a>
+    //                         <p class="mb-0" data-dz-size></p>
+    //                     </div>
+    //                     <div class="col-auto">
+    //   <a href="" class="btn btn-link btn-lg text-muted" data-dz-remove>
+    //   <i class="fe-x"></i>
+    //   </a>
+    //   </div>
+    //   </div>
+    //   </div>
+    //   </div>
+    //   </div>
+    //   `;
+    // },
     // isLastStep() {
     //   if (this.$refs.wizard) {
     //     return this.$refs.wizard.isLastStep;

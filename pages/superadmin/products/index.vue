@@ -378,8 +378,16 @@ export default {
                   <template slot-scope="scope">
                     <ul class="list-inline table-action m-0">
                       <li class="list-inline-item">
+                        <a :href="`https://www.pingo.jp/shop/preview/${scope.row.id}`" target="_blank"  class="action-iconk">
+                          <i class="fe-eye text-danger"></i></a>
+                      </li>
+                      <li class="list-inline-item">
                         <nuxt-link :to="'/superadmin/products/edit/' + scope.row.id" class="action-iconk">
                           <i class="fe-edit"></i></nuxt-link>
+                      </li>
+                      <li class="list-inline-item">
+                        <nuxt-link :to='{name:"superadmin-products-create___jp",params:{product:scope.row}}' class="action-iconk">
+                          <i class="ri-file-copy-2-fill"></i></nuxt-link>
                       </li>
                       <li class="list-inline-item">
                         <a href="javascript:void(0);" class="action-iconk" @click="deleteProduct(scope.row.id)">
