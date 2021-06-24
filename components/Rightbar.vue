@@ -29,6 +29,16 @@ export default {
           swalService.showToast("error", "Redis Cached was failed","top-start")
         }
       })
+    },
+    backup_db(){
+      axios.post("/back/store/api/system/backup_db/").then((res) => {
+        if (res.data.result) {
+          swalService.showToast("success", "DB was backuped!","top-start")
+        } else {
+          console.log(res.data.error_message)
+          swalService.showToast("error", "Failed to backup_db database","top-start")
+        }
+      })
     }
   },
 
@@ -57,6 +67,12 @@ export default {
 
               <button class="btn btn-danger btn-block mt-4" id="resetBtn" @click="reset_rediscache()">
                 Reset Redis Cache
+              </button>
+            </div>
+            <div class="p-3">
+
+              <button class="btn btn-danger btn-block mt-4" id="backupBtn" @click="backup_db()">
+                Backup DB
               </button>
             </div>
           </b-tab>
