@@ -26,6 +26,20 @@ export const actions = {
         resolve(res.id)
       })
     })
+  },
+  update_user_information({commit}, {user_id, info}) {
+    return new Promise((resolve, reject) => {
+      userService.updateUserInfo({user_id, info}).then(res => {
+        resolve(res.id)
+      })
+    })
+  },
+  update_user_profile_information({commit}, {user_id, info}) {
+    return new Promise((resolve, reject) => {
+      userService.updateUserProfileInfo({user_id, info}).then(res => {
+        resolve(res.id)
+      })
+    })
   }
 };
 

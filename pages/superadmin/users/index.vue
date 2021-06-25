@@ -126,7 +126,48 @@ export default {
           })
         }
       }
+    },
+    async setUserTransferPoint(user) {
+      console.log(user)
+      let vm = this;
+      const selectOptions = {
+        'true': 'Enable',
+        "false": "Disable"
+      };
+      const {value: canTransferPoint} = await Swal.fire({
+        title: 'ポイント転送機能',
+        input: 'radio',
+        inputOptions: selectOptions,
+        inputValue: user.canTransferPoint !== undefined ? user.canTransferPoint : "false",
+        inputValidator: (value) => {
+          if (!value) {
+            return 'You need to choose something!'
+          }
+        }
+      })
+      this.updateUserProfileInformation(user.id, {"can_transfer_point": canTransferPoint === 'true'})
 
+    },
+    updateUserProfileInformation(user_id, info) {
+      let vm=this;
+      this.$store.dispatch("users/update_user_profile_information", {
+        user_id: user_id,
+        info: info
+      }).then((response) => {
+        console.log("updateUserInformation: ", response)
+        vm.refreshChildrenList_canTransferPoint(response, info.can_transfer_point)
+        swalService.showModal('Change canTransferPoint', 'canTransferPoint has been changed', 'success')
+      })
+    },
+    refreshChildrenList_canTransferPoint(child_id, canTransferPoint) {
+      console.log("child_id, canTransferPoint",child_id,typeof(child_id), canTransferPoint)
+      console.log(" this.childrenlist", this.childrenlist)
+
+      var index = this.childrenlist.findIndex(child => child.user_id === parseInt(child_id))
+      console.log(index)
+      if (index > -1) {
+        this.childrenlist[index].can_transfer_point = canTransferPoint;
+      }
     },
     refreshChildrenList(child_id, role) {
       console.log(child_id, role)
@@ -199,7 +240,7 @@ export default {
         }
       })
     },
-    user_moveto(user_id,username) {
+    user_moveto(user_id, username) {
       console.log(user_id)
       Swal.fire({
         title: 'MoveTo User under Parent',
@@ -211,10 +252,10 @@ export default {
         confirmButtonText: 'Look up',
         showLoaderOnConfirm: true,
         preConfirm: (parentID) => {
-          let url=`/apiauth/profile/${parentID}/validate_userid/`;
+          let url = `/apiauth/profile/${parentID}/validate_userid/`;
           return this.$axios.post(url)
             .then(response => {
-              console.log("response data",response.data)
+              console.log("response data", response.data)
               if (!response.data.result) {
                 throw new Error(`Username (#${user_id}) does not exist!`)
               }
@@ -228,7 +269,7 @@ export default {
         },
         allowOutsideClick: () => !Swal.isLoading()
       }).then((result) => {
-        let parent=result;
+        let parent = result;
         if (result.isConfirmed) {
           Swal.fire({
             title: 'Are you sure?',
@@ -242,13 +283,13 @@ export default {
             if (result.isConfirmed) {
               console.log(`MoveTo ${user_id} under ${parent.value.id}`)
               let url = `/apiauth/profile/${user_id}/moveto/`;
-              console.log(url,{"parent_id":parent.value.id})
-              return this.$axios.post(url,{"parent_id":parent.value.id})
+              console.log(url, {"parent_id": parent.value.id})
+              return this.$axios.post(url, {"parent_id": parent.value.id})
                 .then(response => {
-                  if (response.data.result){
-                    swalService.showToast("success","MoveTo user successfully! Please refresh page.")
-                  }else{
-                    swalService.showToast("error","Failed to move user!")
+                  if (response.data.result) {
+                    swalService.showToast("success", "MoveTo user successfully! Please refresh page.")
+                  } else {
+                    swalService.showToast("error", "Failed to move user!")
                   }
                 })
             }
@@ -383,7 +424,7 @@ export default {
 
                 <el-table-column type="expand">
                   <template slot-scope="props">
-
+                    <b-button variant="primary" @click="setUserTransferPoint(props.row)">ポイント転送機能設定</b-button>
                   </template>
                 </el-table-column>
                 <el-table-column
@@ -417,6 +458,17 @@ export default {
                       <i class=' ri-home-smile-fill text-white' v-if='scope.row.role==="client_admin"'></i>
                       <i class='ri-hospital-fill text-white' v-if='scope.row.role==="vendor"'></i>
                       <span v-if='scope.row.role===undefined' class="text-white">N/G</span>
+                    </button>
+                  </template>
+                </el-table-column>
+                <el-table-column
+                  prop="can_transfer_point"
+                  align="center"
+                  label="ポイント転送">
+                  <template slot-scope="scope">
+                    <button type="button" class="btn btn-rounded ml-1" @click="setUserTransferPoint(scope.row)"
+                      v-bind:class="{'btn-success':scope.row.can_transfer_point,'btn-danger':!scope.row.can_transfer_point}">
+                      <i class="fe-refresh-cw"></i>
                     </button>
                   </template>
                 </el-table-column>

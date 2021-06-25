@@ -8,7 +8,9 @@ export const userService = {
   register,
   getAll,
   setUserRole,
-  validateToken
+  validateToken,
+  updateUserInfo,
+  updateUserProfileInfo,
 };
 
 function validateToken() {
@@ -63,6 +65,24 @@ function setUserRole({user_id, role}) {
   console.log(url)
   console.log(role)
   return axios.$post(url, {user_id, role})
+    .then(handleResponse)
+    .then(response => {
+      return response;
+    });
+}
+
+function updateUserInfo({user_id, info}) {
+  const url = `/apiauth/users/${user_id}/`
+  return axios.$put(url, {user_id, info})
+    .then(handleResponse)
+    .then(response => {
+      return response;
+    });
+}
+
+function updateUserProfileInfo({user_id, info}) {
+  const url = `/apiauth/profile/${user_id}/`
+  return axios.$put(url, {user_id, info})
     .then(handleResponse)
     .then(response => {
       return response;
