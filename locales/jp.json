@@ -160,7 +160,9 @@
         "level_1": "父親",
         "level_2": "祖父",
         "user_self": "本人",
-        "affiliator": "アフリエイト"
+        "affiliator": "アフリエイト",
+        "move_user": "会員移動",
+        "selected_user":"選択したユーザー"
       },
       "follower": {
         "title": "フォロワー",

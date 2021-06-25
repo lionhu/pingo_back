@@ -24,7 +24,7 @@ export default {
   },
   data() {
     return {
-      title: "users",
+      title: this.$t("menuitems.organizations.user.text"),
       items: [
         {
           text: "PINGO"
@@ -127,8 +127,9 @@ export default {
         }
       }
     },
-    async setUserTransferPoint(user) {
-      console.log(user)
+    async setUserTransferPoint(profile) {
+      console.log(profile)
+      console.log(profile)
       let vm = this;
       const selectOptions = {
         'true': 'Enable',
@@ -138,14 +139,14 @@ export default {
         title: 'ポイント転送機能',
         input: 'radio',
         inputOptions: selectOptions,
-        inputValue: user.canTransferPoint !== undefined ? user.canTransferPoint : "false",
+        inputValue: profile.can_transfer_point !== undefined ? profile.can_transfer_point : false,
         inputValidator: (value) => {
           if (!value) {
             return 'You need to choose something!'
           }
         }
       })
-      this.updateUserProfileInformation(user.id, {"can_transfer_point": canTransferPoint === 'true'})
+      this.updateUserProfileInformation(profile.user_id, {"can_transfer_point": canTransferPoint === 'true'})
 
     },
     updateUserProfileInformation(user_id, info) {
@@ -220,7 +221,7 @@ export default {
       let vm = this;
       Swal.fire({
         title: 'Are you sure?',
-        text: `All ${username}'s information will be deleted. `,
+        text: `All ${username}'s (#${user_id}) information will be deleted. `,
         icon: 'warning',
         showCancelButton: true,
         confirmButtonColor: '#3085d6',
@@ -231,9 +232,12 @@ export default {
           this.$axios.delete(`/apiauth/users/${user_id}/`).then((response) => {
             console.log(response)
             if (response.data.result) {
-              var index = vm.childrenlist.findIndex(user => user.id === user_id)
+              console.log(vm.childrenlist)
+              var index = vm.childrenlist.findIndex(profile => profile.user_id === user_id)
+              console.log(index)
               if (index > -1) {
                 vm.childrenlist.splice(index, 1)
+                Swal.fire("Success","success","User removed successfully! Please Refresh Page")
               }
             }
           });
@@ -374,10 +378,9 @@ export default {
       <div class="col-md-6 col-xs-12" v-if="user_selected">
         <div class="card">
           <div class="card-body">
-            <h6>User Selected:{{ user.username }}</h6>
+            <h6>{{$t("menuitems.organizations.user.selected_user")}}:{{ user.username }}</h6>
             <div class="d-flex justify-content-between">
-              <b-button variant="danger" @click="remove_user(user.id,user.username)">Delete</b-button>
-              <b-button variant="primary" @click="user_moveto(user.id,user.username)">MoveTo</b-button>
+              <b-button variant="primary" @click="user_moveto(user.id,user.username)">{{$t("menuitems.organizations.user.move_user")}}</b-button>
             </div>
           </div>
         </div>
@@ -424,13 +427,13 @@ export default {
 
                 <el-table-column type="expand">
                   <template slot-scope="props">
-                    <b-button variant="primary" @click="setUserTransferPoint(props.row)">ポイント転送機能設定</b-button>
+                    <h4>User ID: {{props.row.user_id}}</h4>
                   </template>
                 </el-table-column>
                 <el-table-column
                   prop="username"
                   label="username">
-                  <template slot-scope="scope">{{ scope.row.username }}(#{{ scope.row.user_id }})</template>
+                  <template slot-scope="scope">{{ scope.row.username }}</template>
                 </el-table-column>
                 <el-table-column
                   prop="client"
@@ -514,7 +517,7 @@ export default {
                           <i class="mdi mdi-square-edit-outline"></i></a>
                       </li>
                       <li class="list-inline-item">
-                        <a href="javascript:void(0);" class="action-icon" @click="remove_user(scope.row.id)"
+                        <a href="javascript:void(0);" class="action-icon" @click="remove_user(scope.row.user_id,scope.row.username)"
                            v-if="scope.row.username!=='wavus'">
                           <i class="fe-trash-2"></i></a>
                       </li>

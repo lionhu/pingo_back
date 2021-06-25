@@ -386,9 +386,11 @@ export default {
                   prop="is_valid">
                   <template slot-scope="scope">
 
-                    <a href="javascript:void(0);" @click="updateMarginValid(scope.row.id)">
-                      <i
-                        v-bind:class="{'fe-eye text-success':scope.row.is_valid,'fe-eye-off text-danger':!scope.row.is_valid}"></i>
+                    <a href="javascript:void(0);" @click="updateMarginValid(scope.row.id)" v-if="!scope.row.is_valid">
+                      <i class="fe-eye-off text-danger"></i>
+                    </a>
+                    <a href="javascript:void(0);" v-else>
+                      <i class="fe-eye text-success"></i>
                     </a>
                   </template>
                 </el-table-column>
