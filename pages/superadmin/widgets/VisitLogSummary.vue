@@ -1,7 +1,6 @@
 <script>
 import {mapState} from 'vuex'
 import {axios} from "@/plugins/axios"
-import VueApexCharts from "vue-apexcharts";
 
 export default {
   name: "SuperAdmin_visitlog_summary",

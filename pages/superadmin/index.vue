@@ -2,7 +2,7 @@
 import {mapState} from 'vuex'
 import {axios} from "@/plugins/axios"
 
-import VueApexCharts from "vue-apexcharts";
+
 
 export default {
   name: "backend_SuperAdmin_index",
@@ -11,10 +11,24 @@ export default {
     DescendantSummary: () => import("@/components/widgets/DescendantSummary"),
     PointSummary: () => import("@/components/widgets/PointSummary"),
     VisitLogSummary: () => import("./widgets/VisitLogSummary"),
-    UsersSummary: () => import("@/components/widgets/UsersSummary"),
+    RegisteredUsers: () => import("./widgets/RegisteredUsers"),
     PointUserRanking: () => import("./widgets/PointUserRanking"),
+    UnapprovedPoints:()=>import("./widgets/UnapprovedPoint"),
+    ViewProductRanking:()=>import("./widgets/ViewProductRanking")
   },
   middleware: ['router-auth', 'router-superadmin'],
+
+  head() {
+    return {
+      title: 'Client Admin Dashboard | PINGO Backend',
+      script: [
+        {src: 'https://unpkg.com/element-ui/lib/index.js'}
+      ],
+      link: [
+        {rel: 'stylesheet', href: 'https://unpkg.com/element-ui/lib/theme-chalk/index.css'}
+      ]
+    };
+  },
   data() {
     return {
       items: [
@@ -29,73 +43,36 @@ export default {
           active: true
         }
       ],
-    }
-  },
-  head() {
-    return {
-      title: 'Client Admin Dashboard | PINGO Backend'
+      unApprovedPoints:{
+        labels:[],
+        data:[]
+      },
+      user_ranking:{},
+      viewproduct_summary:{
+        labels:[],
+        data:[]
+      }
     }
   },
   mounted() {
+    let vm=this;
     axios.get("/admin_back/api/pointbanks/").then(response => {
       console.log(response)
     })
-    axios.post("/admin_back/api/admin_dashboard/get_charts/").then(response => {
-      const chart_data = response.data.data.datasets[0]
-      const chart_labels = response.data.data.labels;
-      console.log("/admin_back/api/admin_dashboard/get_charts/", chart_data)
-
-      var options = {
-        series: chart_data.data,
-        chart: {
-          height: 380,
-          type: 'donut',
-        },
-        plotOptions: {
-          pie: {
-            startAngle: -90,
-            endAngle: 270
-          }
-        },
-        labels: chart_labels,
-        // dataLabels: {
-        //   enabled: true,
-        //   labels: chart_data.labels,
-        // },
-        fill: {
-          type: 'gradient',
-        },
-        legend: {
-          formatter: function (val, opts) {
-            console.log("val, opts", val, opts)
-            return val + " - " + opts.w.globals.series[opts.seriesIndex]
-          }
-        },
-        title: {
-          text: 'Gradient Donut with custom Start-angle'
-        },
-        responsive: [{
-          breakpoint: 480,
-          options: {
-            chart: {
-              width: 200
-            },
-            legend: {
-              position: 'bottom'
-            }
-          }
-        }]
-      };
-
-      var chart = new ApexCharts(document.querySelector("#chart"), options);
-      chart.render();
-
-    })
-    axios.post("/admin_back/api/pointbanks/user_ranking/").then(response => {
-      let response_data = response.data
-      let summary = JSON.parse(response_data.data.summary)
-      console.log("summary", summary)
-    })
+    axios.post("/admin_back/api/admin_dashboard/get_charts/")
+      .then(response => {
+        if (response.data.result) {
+          vm.unApprovedPoints.labels=response.data.charts.margin_summary.labels;
+          vm.unApprovedPoints.data=response.data.charts.margin_summary.datasets[0].data;
+          vm.user_ranking = JSON.parse(response.data.charts.user_ranking)
+          vm.viewproduct_summary.labels=response.data.charts.viewproduct_summary.labels;
+          vm.viewproduct_summary.data=response.data.charts.viewproduct_summary.datasets[0].data;
+        }
+      })
+  },
+  methods:{
+    create_viewproduct_ranking(){
+    }
   },
   computed: {
     ...mapState({
@@ -124,10 +101,21 @@ export default {
   <div>
     <PageHeader :title="page_title" :items="items"/>
 
-    <div id="chart"></div>
-    <PointUserRanking></PointUserRanking>
+<!--    <ViewProductRanking :viewproduct_summary="viewproduct_summary"-->
+<!--                        header_title="閲覧商品ランキング"-->
+<!--                      title="商品別"/>-->
+    <UnapprovedPoints :unapprovedpoints_data="unApprovedPoints"
+                      header_title="未承認ポイント　サマリー"
+                      title="カテゴリ別"/>
+    <PointUserRanking :user_ranking="user_ranking"></PointUserRanking>
+    <div class="row">
+      <div class="col-6">
     <VisitLogSummary/>
-    <UsersSummary/>
+      </div>
+      <div class="col-6">
+    <RegisteredUsers/>
+      </div>
+    </div>
 
   </div>
 </template>

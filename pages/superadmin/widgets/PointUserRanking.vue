@@ -1,29 +1,15 @@
 <script>
-import {mapState} from 'vuex'
-import {axios} from "@/plugins/axios"
-import VueApexCharts from "vue-apexcharts";
-
 export default {
   name: "superadmin_pointbank_user_ranking",
+  props:["user_ranking"],
   components: {
     "el-table": () => import('element-ui/lib/table'),
     "el-table-column": () => import('element-ui/lib/table-column'),
     "el-select": () => import('element-ui/lib/select'),
     "el-option": () => import('element-ui/lib/option'),
   },
-  head() {
-    return {
-      script: [
-        {src: 'https://unpkg.com/element-ui/lib/index.js'}
-      ],
-      link: [
-        {rel: 'stylesheet', href: 'https://unpkg.com/element-ui/lib/theme-chalk/index.css'}
-      ]
-    };
-  },
   data() {
     return {
-      summary: [],
       options: [{
         value: '5',
         label: 'Top 5'
@@ -34,23 +20,12 @@ export default {
       top: 5
     }
   },
-  mounted() {
-    let vm = this;
-    axios.post("/admin_back/api/pointbanks/user_ranking/")
-      .then(response => {
-        let summary_data = response.data
-        if (summary_data.result) {
-          let summary = JSON.parse(summary_data.data.summary)
-          vm.summary = summary;
-        }
-      })
-  },
   computed: {
-    ...mapState({
-      ME: state => state.auth.user
-    }),
     tableData: function () {
-      return this.summary.slice(0, this.top)
+      if (this.user_ranking.length){
+        return this.user_ranking.slice(0, this.top)
+      }
+      return []
     }
   },
 }
