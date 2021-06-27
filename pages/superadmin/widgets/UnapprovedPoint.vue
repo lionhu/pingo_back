@@ -21,10 +21,18 @@ export default {
     this.refresh_chart();
   },
   methods: {
+    TranslatedLabels(labels){
+      let vm=this;
+      let new_labels=labels.map(item =>{
+        let dict_key=`menuitems.ecommerce.points.type.${item}`
+        return vm.$t(dict_key)
+      })
+      return new_labels;
+    },
     refresh_chart() {
       if (this.unapprovedpoints_data.data !== undefined){
         const chart_data = this.unapprovedpoints_data.data;
-        const chart_labels = this.unapprovedpoints_data.labels;
+        const chart_labels = this.TranslatedLabels(this.unapprovedpoints_data.labels)
         var options = {
           series: chart_data,
           chart: {

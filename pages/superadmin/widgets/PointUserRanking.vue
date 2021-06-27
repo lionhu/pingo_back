@@ -1,68 +1,113 @@
 <script>
+import VueApexCharts from "vue-apexcharts";
+
 export default {
-  name: "superadmin_pointbank_user_ranking",
-  props:["user_ranking"],
+  name: "SuperAdmin_userpointbank_summary",
   components: {
-    "el-table": () => import('element-ui/lib/table'),
-    "el-table-column": () => import('element-ui/lib/table-column'),
-    "el-select": () => import('element-ui/lib/select'),
-    "el-option": () => import('element-ui/lib/option'),
+    apexchart: () => import("vue-apexcharts"),
   },
+  props: ["user_ranking", "header_title", "title"],
   data() {
-    return {
-      options: [{
-        value: '5',
-        label: 'Top 5'
-      }, {
-        value: '10',
-        label: 'Top 10'
-      }],
-      top: 5
+    return {}
+  },
+  watch: {
+    unapprovedpoints_data(newVal, oldVal) {
+      if (newVal !== undefined) {
+        this.refresh_chart();
+      }
     }
   },
-  computed: {
-    tableData: function () {
-      if (this.user_ranking.length){
-        return this.user_ranking.slice(0, this.top)
+  mounted() {
+    this.refresh_chart();
+  },
+  methods: {
+    refresh_chart() {
+      if (this.user_ranking !== undefined) {
+        const chart_data = this.user_ranking.data;
+        const chart_labels = this.user_ranking.labels
+        var options = {
+          series:[{
+            data: chart_data
+          }],
+          chart: {
+              type: 'bar',
+              height: 380
+            },
+            plotOptions: {
+              bar: {
+                barHeight: '100%',
+                distributed: true,
+                horizontal: true,
+                dataLabels: {
+                  position: 'bottom'
+                },
+              }
+            },
+            colors: ['#33b2df', '#546E7A', '#d4526e', '#13d8aa', '#A5978B', '#2b908f', '#f9a3a4', '#90ee7e',
+              '#f48024', '#69d2e7'
+            ],
+            dataLabels: {
+              enabled: true,
+              textAnchor: 'start',
+              style: {
+                colors: ['#fff']
+              },
+              formatter: function (val, opt) {
+                return opt.w.globals.labels[opt.dataPointIndex] + ":  " + val
+              },
+              offsetX: 0,
+              dropShadow: {
+                enabled: true
+              }
+            },
+            stroke: {
+              width: 1,
+              colors: ['#fff']
+            },
+            xaxis: {
+              categories: chart_labels,
+            },
+            yaxis: {
+              labels: {
+                show: false
+              }
+            },
+            title: {
+                text: '*承認済み、お客様が買い物に使えるポイント。',
+                align: 'left',
+                floating: true
+            },
+            fill:{
+            type: 'gradient',
+            },
+            tooltip: {
+              theme: 'dark',
+              x: {
+                show: false
+              },
+              y: {
+                title: {
+                  formatter: function () {
+                    return ''
+                  }
+                }
+              }
+            }
+        }
+
+        var chart = new ApexCharts(document.querySelector("#userpointbank"), options);
+        chart.render();
       }
-      return []
     }
   },
 }
 </script>
 
 <template>
-  <div class="card">
-    <div class="card-body">
-      <div class="d-flex justify-content-between border-bottom  p-2">
-
-        <span class="d-inline-block">User Raking</span>
-        <el-select v-model="top" placeholder="请选择">
-          <el-option
-            v-for="item in options"
-            :key="item.value"
-            :label="item.label"
-            :value="item.value">
-          </el-option>
-        </el-select>
-      </div>
-      <el-table
-        :data="tableData"
-        stripe
-        style="width: 100%">
-        <el-table-column
-          prop="username"
-          label="姓名"
-          width="180">
-        </el-table-column>
-        <el-table-column
-          prop="total"
-          label="Total">
-          <template slot-scope="scope">
-            {{ scope.row.total|currency("¥") }}
-          </template>
-        </el-table-column>
-      </el-table>
+  <div className="card">
+    <div className="card-body">
+      <h5>{{ header_title }}</h5>
+      <div id="userpointbank"></div>
     </div>
   </div>
 </template>

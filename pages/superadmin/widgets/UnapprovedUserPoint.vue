@@ -22,10 +22,20 @@ export default {
     this.refresh_chart();
   },
   methods: {
+    TranslatedLabels(data){
+      let vm=this;
+      let new_data=data.map(item =>{
+        item.name=vm.$t(`menuitems.ecommerce.points.type.${item.name}`)
+        return item
+      })
+      return new_data;
+    },
     refresh_chart() {
       if (this.unapprovedpoints_data.data !== undefined) {
-        const chart_data = this.unapprovedpoints_data.data;
-        const chart_labels = this.unapprovedpoints_data.labels;
+        var translated_data=this.TranslatedLabels(this.unapprovedpoints_data.data);
+        console.log(translated_data)
+        const chart_data = translated_data;
+        const chart_labels =this.unapprovedpoints_data.labels;
         var options = {
           series: chart_data,
           chart: {

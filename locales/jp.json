@@ -201,7 +201,16 @@
         "text": "ベンダー注文"
       },
       "points": {
-        "text": "ポイント"
+        "text": "ポイント",
+        "type": {
+          "OrderBonus": "購入取得ボーナス",
+          "DesendentOrderPoint": "製品紹介購入",
+          "PURCHASE_ORDER": "購入利用",
+          "JOINBONUS_POINT": "会員加入",
+          "INTRODUCE_POINT": "メンバー入会紹介",
+          "TRANSFER_OUT": "ポイント譲渡",
+          "TRANSFER_IN": "ポイント受取"
+        }
       }
     },
     "calendar": {
