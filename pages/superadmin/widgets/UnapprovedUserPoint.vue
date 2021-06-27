@@ -1,7 +1,8 @@
 <script>
 import VueApexCharts from "vue-apexcharts";
+
 export default {
-  name: "SuperAdmin_unapprovedpoints_summary",
+  name: "SuperAdmin_unapproveduserpoints_summary",
   components: {
     apexchart: () => import("vue-apexcharts"),
   },
@@ -22,53 +23,60 @@ export default {
   },
   methods: {
     refresh_chart() {
-      if (this.unapprovedpoints_data.data !== undefined){
+      if (this.unapprovedpoints_data.data !== undefined) {
         const chart_data = this.unapprovedpoints_data.data;
         const chart_labels = this.unapprovedpoints_data.labels;
         var options = {
           series: chart_data,
           chart: {
+            type: 'bar',
             height: 350,
-            type: 'donut',
+            stacked: true,
           },
           plotOptions: {
-            pie: {
-              startAngle: -90,
-              endAngle: 270
-            }
+            bar: {
+              horizontal: false,
+            },
           },
-          labels: chart_labels,
-          // dataLabels: {
-          //   enabled: true,
-          //   labels: chart_data.labels,
-          // },
-          fill: {
-            type: 'gradient',
-          },
-          legend: {
-            position:"bottom",
-             horizontalAlign: 'left',
-            formatter: function (val, opts) {
-              return val + " - " + opts.w.globals.series[opts.seriesIndex]
-            }
+          stroke: {
+            width: 1,
+            colors: ['#fff']
           },
           title: {
             text: this.title
           },
-          // responsive: [{
-          //   breakpoint: 480,
-          //   options: {
-          //     chart: {
-          //       width: 200
-          //     },
-          //     legend: {
-          //       position: 'bottom'
-          //     }
-          //   }
-          // }]
+          xaxis: {
+            categories: chart_labels,
+            labels: {
+              formatter: function (val) {
+                return val
+              }
+            }
+          },
+          yaxis: {
+            title: {
+              text: undefined
+            },
+          },
+          tooltip: {
+            y: {
+              formatter: function (val) {
+                return val
+              }
+            }
+          },
+          fill: {
+            type: 'gradient',
+          },
+          legend: {
+            position: 'bottom',
+            horizontalAlign: 'left',
+            offsetX: 40
+          },
+          // labels: chart_labels
         };
 
-        var chart = new ApexCharts(document.querySelector("#unapprovedchart"), options);
+        var chart = new ApexCharts(document.querySelector("#unapproveduserchart"), options);
         chart.render();
       }
     }
@@ -80,7 +88,7 @@ export default {
   <div class="card">
     <div class="card-body">
       <h5>{{ header_title }}</h5>
-      <div id="unapprovedchart"></div>
+      <div id="unapproveduserchart"></div>
     </div>
   </div>
 </template>

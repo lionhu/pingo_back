@@ -10,9 +10,6 @@ export default function ({$axios, store, redirect}, inject) {
     if (user && user.token) {
       $axios.defaults.headers.common['Authorization'] = user.token;
     }
-    // console.log($axios.defaults.headers.common['Authorization'])
-
-    console.log(request)
     return request;
   })
   $axios.onResponse(response => {

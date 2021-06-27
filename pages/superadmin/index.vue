@@ -3,7 +3,6 @@ import {mapState} from 'vuex'
 import {axios} from "@/plugins/axios"
 
 
-
 export default {
   name: "backend_SuperAdmin_index",
   components: {
@@ -13,8 +12,9 @@ export default {
     VisitLogSummary: () => import("./widgets/VisitLogSummary"),
     RegisteredUsers: () => import("./widgets/RegisteredUsers"),
     PointUserRanking: () => import("./widgets/PointUserRanking"),
-    UnapprovedPoints:()=>import("./widgets/UnapprovedPoint"),
-    ViewProductRanking:()=>import("./widgets/ViewProductRanking")
+    UnapprovedPoints: () => import("./widgets/UnapprovedPoint"),
+    UnapprovedUserPoint: () => import("./widgets/UnapprovedUserPoint"),
+    ViewProductRanking: () => import("./widgets/ViewProductRanking")
   },
   middleware: ['router-auth', 'router-superadmin'],
 
@@ -43,36 +43,37 @@ export default {
           active: true
         }
       ],
-      unApprovedPoints:{
-        labels:[],
-        data:[]
+    }
+  },
+  async asyncData() {
+    const response_data=await axios.post("/admin_back/api/admin_dashboard/get_charts/")
+      .then(response => {
+        if (response.data.result) {
+          return response.data.charts;
+        }
+      })
+    return {
+      unApprovedPoints: {
+        labels: response_data.margin_summary.labels,
+        data: response_data.margin_summary.datasets[0].data
       },
-      user_ranking:{},
-      viewproduct_summary:{
-        labels:[],
-        data:[]
+      unApprovedUserPoints: {
+        labels: response_data.user_margin_summary.labels,
+        data: response_data.user_margin_summary.datasets
+      },
+      user_ranking: {
+        labels: response_data.user_ranking.labels,
+        data: response_data.user_ranking.datasets[0].data
       }
+      // viewproduct_summary: {
+      //   labels:response_data.viewproduct_summary.labels,
+      //   data: response_data.viewproduct_summary.datasets[0].data
+      // }
     }
   },
   mounted() {
-    let vm=this;
-    axios.get("/admin_back/api/pointbanks/").then(response => {
-      console.log(response)
-    })
-    axios.post("/admin_back/api/admin_dashboard/get_charts/")
-      .then(response => {
-        if (response.data.result) {
-          vm.unApprovedPoints.labels=response.data.charts.margin_summary.labels;
-          vm.unApprovedPoints.data=response.data.charts.margin_summary.datasets[0].data;
-          vm.user_ranking = JSON.parse(response.data.charts.user_ranking)
-          vm.viewproduct_summary.labels=response.data.charts.viewproduct_summary.labels;
-          vm.viewproduct_summary.data=response.data.charts.viewproduct_summary.datasets[0].data;
-        }
-      })
   },
-  methods:{
-    create_viewproduct_ranking(){
-    }
+  methods: {
   },
   computed: {
     ...mapState({
@@ -101,19 +102,24 @@ export default {
   <div>
     <PageHeader :title="page_title" :items="items"/>
 
-<!--    <ViewProductRanking :viewproduct_summary="viewproduct_summary"-->
-<!--                        header_title="閲覧商品ランキング"-->
-<!--                      title="商品別"/>-->
-    <UnapprovedPoints :unapprovedpoints_data="unApprovedPoints"
-                      header_title="未承認ポイント　サマリー"
-                      title="カテゴリ別"/>
-    <PointUserRanking :user_ranking="user_ranking"></PointUserRanking>
+    <!--    <ViewProductRanking :viewproduct_summary="viewproduct_summary"-->
+    <!--                        header_title="閲覧商品ランキング"-->
+    <!--                      title="商品別"/>-->
+    <div class="row">
+      <div class="col-md-6 col-xs-12">
+        <UnapprovedPoints :unapprovedpoints_data="unApprovedPoints" header_title="未承認ポイント　サマリー" title="カテゴリ別"/>
+      </div>
+      <div class="col-md-6 col-xs-12">
+        <UnapprovedUserPoint :unapprovedpoints_data="unApprovedUserPoints" header_title="未承認ポイント　サマリー" title="ユーザー別(Top3)"/>
+      </div>
+    </div>
+    <PointUserRanking :user_ranking="user_ranking" header_title="持ちポイントランキング" title="ユーザー別(Top3)"></PointUserRanking>
     <div class="row">
       <div class="col-6">
-    <VisitLogSummary/>
+<!--        <VisitLogSummary/>-->
       </div>
       <div class="col-6">
-    <RegisteredUsers/>
+<!--        <RegisteredUsers/>-->
       </div>
     </div>
 
