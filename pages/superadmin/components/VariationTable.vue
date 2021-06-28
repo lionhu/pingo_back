@@ -94,6 +94,7 @@ export default {
     beforeAvatarUpload(file) {
       const isJPG = file.type === 'image/jpeg';
       const isLt2M = file.size / 1024 / 1024 < 2;
+      // return isLt2M;
       if (!isLt2M || !isJPG) {
         swalService.showModal("Invalid picture", "Should be JPEG and below 2M", "warning")
         return false
