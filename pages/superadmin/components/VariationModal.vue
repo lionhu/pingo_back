@@ -4,7 +4,7 @@ import {axios} from "@/plugins/axios";
 
 export default {
   name: "edit_product_variation",
-  props: ["showVariationModal", "modeAdd", "edit_variation","product_id"],
+  props: ["showVariationModal", "modeAdd", "edit_variation", "product_id"],
   components: {
     Switches: () => import('vue-switches'),
   },
@@ -102,16 +102,24 @@ export default {
       </div>
       <div class="row mt-md-2">
         <div class="col-md-6">
-          <label for="field-inventory" class="control-label">Active
-            <span class="text-danger">*</span>
-          </label>
-        </div>
-        <div class="col-md-6">
-
           <div class="form-group">
+            <label for="field-inventory" class="control-label">Active
+              <span class="text-danger">*</span>
+            </label> <br>
+
             <switches v-model="edit_variation.point_rule.is_valid" id="field-is_valid" type-bold="false"
                       color="warning"
                       class="ml-1 my-auto"></switches>
+          </div>
+        </div>
+        <div class="col-md-6">
+          <div class="form-group">
+            <label for="product-sort">
+              Sort ID:
+              <span class="text-danger">*</span>
+            </label>
+            <input type="text" v-model="edit_variation.sort_by" id="product-sort" class="form-control"
+                   :placeholder="edit_variation.sort_by"/>
           </div>
         </div>
       </div>
@@ -324,8 +332,6 @@ export default {
           </div>
         </div>
       </div>
-
-
       <div class="form-group row">
         <div class="col-8 offset-4">
           <button type="submit" class="btn btn-primary">Submit</button>

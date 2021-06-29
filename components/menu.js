@@ -51,6 +51,12 @@
         roles:["superadmin"],
         subItems: [
             {
+                id: 80,
+                label: "menuitems.ecommerce.pointbanks.text",
+                link: "/superadmin/pointbanks",
+                icon: "ri-coin-fill text-danger"
+            },
+            {
                 id: 81,
                 label: "menuitems.ecommerce.points.text",
                 link: "/superadmin/points",

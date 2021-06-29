@@ -49,7 +49,7 @@ export default {
     "el-option": () => import('element-ui/lib/option'),
     "el-cascader": () => import('element-ui/lib/cascader'),
     "el-form": () => import('element-ui/lib/form'),
-    Category:()=>import('../components/CategoryModal')
+    Category: () => import('../components/CategoryModal')
 
   },
   data() {
@@ -78,7 +78,7 @@ export default {
         label: "title",
         value: "id"
       },
-      edit_category:false
+      edit_category: false
     };
   },
   computed: {
@@ -217,11 +217,11 @@ export default {
       this.$store.dispatch("products/load_category_products", options)
         .then(response => {
           vm.productlist = response.products;
-          let product_count=response.products.length;
-          if(product_count){
-          swalService.showToast("success",`${product_count} products loaded!`)
-          }else{
-            swalService.showToast("warning",`no products found!`)
+          let product_count = response.products.length;
+          if (product_count) {
+            swalService.showToast("success", `${product_count} products loaded!`)
+          } else {
+            swalService.showToast("warning", `no products found!`)
           }
         })
     },
@@ -243,9 +243,9 @@ export default {
       <div class="col-md-6 col-xs-12">
         <div class="card">
           <div class="card-body">
-<!--            <h6 style="line-height: 2rem;">Product Category-->
-<!--                <b-button variant="warning" class="float-right" @click="edit_category=!edit_category;">Edit</b-button>-->
-<!--            </h6>-->
+            <!--            <h6 style="line-height: 2rem;">Product Category-->
+            <!--                <b-button variant="warning" class="float-right" @click="edit_category=!edit_category;">Edit</b-button>-->
+            <!--            </h6>-->
             <el-tree
               class="filter-tree"
               :props="props"
@@ -261,7 +261,7 @@ export default {
       <div class="col-md-6 col-xs-12">
         <div class="card" v-if="edit_category">
           <div class="card-body">
-            <Category />
+            <Category/>
           </div>
         </div>
       </div>
@@ -341,27 +341,17 @@ export default {
                   </template>
                 </el-table-column>
                 <el-table-column
-                  label="Vendor"
-                  sortable
-                  prop="vendor.name">
-                </el-table-column>
-                <el-table-column
-                  label="Rate"
+                  label="Order"
                   sortable
                   prop="rate">
                   <template slot-scope="scope">
-                            <span class="badge" :class="{
-                      'badge-success': scope.row.rate >= 4,
-                      'badge-danger': scope.row.rate < 3,
-                      'badge-warning':
-                        scope.row.rate > 3 && scope.row.rate < 4
-                    }"><i class="mdi mdi-star"></i> {{ scope.row.rate }}</span>
+                    <b-badge variant="danger" pill>{{ scope.row.sort_by }}</b-badge>
                   </template>
                 </el-table-column>
                 <el-table-column
-                  label="Category"
+                  label="Vendor"
                   sortable
-                  prop="category.title">
+                  prop="vendor.name">
                 </el-table-column>
                 <el-table-column
                   label="Status"
@@ -378,7 +368,8 @@ export default {
                   <template slot-scope="scope">
                     <ul class="list-inline table-action m-0">
                       <li class="list-inline-item">
-                        <a :href="`https://www.pingo.jp/shop/preview/${scope.row.id}`" target="_blank"  class="action-iconk">
+                        <a :href="`https://www.pingo.jp/shop/preview/${scope.row.id}`" target="_blank"
+                           class="action-iconk">
                           <i class="fe-eye text-danger"></i></a>
                       </li>
                       <li class="list-inline-item">
@@ -386,7 +377,8 @@ export default {
                           <i class="fe-edit"></i></nuxt-link>
                       </li>
                       <li class="list-inline-item">
-                        <nuxt-link :to='{name:"superadmin-products-create___jp",params:{product:scope.row}}' class="action-iconk">
+                        <nuxt-link :to='{name:"superadmin-products-create___jp",params:{product:scope.row}}'
+                                   class="action-iconk">
                           <i class="ri-file-copy-2-fill"></i></nuxt-link>
                       </li>
                       <li class="list-inline-item">
@@ -406,57 +398,67 @@ export default {
     <b-modal id="modal-product" scrollable title="Edit Product Information" title-class="font-18"
              body-class="p-4" hide-footer>
       <form @submit.prevent="updateProductInformation">
-        <div class="row">
+        <div class="row mb-3">
           <div class="col-md-6">
-            <b-form-group id="field-type_regular">
-              <b-form-radio v-model="product.type" name="some-radios" value="REGULAR"
-                            @change="switchProductType('REGULAR')">REGULAR
-              </b-form-radio>
-            </b-form-group>
-          </div>
-          <div class="col-md-6" id="field-type_pingo">
-            <b-form-group>
-              <b-form-radio v-model="product.type" name="some-radios" value="PINGO"
-                            @change="switchProductType('PINGO')">PINGO
-              </b-form-radio>
-            </b-form-group>
+              <label for="field-sort_by" class="control-label">Sort ID:
+                <span class="text-danger">*</span>
+              </label>
+              <input type="number" id="field-sort_by" v-model="product.sort_by" class="form-control"
+                     :class="{ 'is-invalid': submitted && $v.product.sort_by.$error }"
+                     :placeholder="product.sort_by"/>
           </div>
         </div>
-        <div class="row" v-if="product.type==='PINGO'">
-          <div class="col-md-4">
-            <div class="form-group">
-              <label for="field-targetNum" class="control-label">TargetNum
-                <span class="text-danger">*</span>
-              </label>
-              <input type="number" id="field-targetNum" v-model="product.pingo_targetNum" class="form-control"
-                     :placeholder="product.pingo_targetNum"/>
-            </div>
-          </div>
-          <div class="col-md-4">
-            <div class="form-group">
-              <label for="field-currentNum" class="control-label">CurrentNum
-                <span class="text-danger">*</span>
-              </label>
-              <input type="number" id="field-currentNum" v-model="product.pingo_currentNum" class="form-control"
-                     :placeholder="product.pingo_currentNum"/>
-            </div>
-          </div>
-          <div class="col-md-4">
-            <div class="form-group">
-              <label id="fromDate_picker_label">
-                Until At:
-                <span class="text-danger">*</span>
-              </label>
-              <el-date-picker
-                id="fromDate_picker"
-                v-model="product.pingo_until_at"
-                align="right"
-                type="date"
-                placeholder="開始日選択">
-              </el-date-picker>
-            </div>
-          </div>
-        </div>
+<!--        <div class="row">-->
+<!--          <div class="col-md-6">-->
+<!--            <b-form-group id="field-type_regular">-->
+<!--              <b-form-radio v-model="product.type" name="some-radios" value="REGULAR"-->
+<!--                            @change="switchProductType('REGULAR')">REGULAR-->
+<!--              </b-form-radio>-->
+<!--            </b-form-group>-->
+<!--          </div>-->
+<!--          <div class="col-md-6" id="field-type_pingo">-->
+<!--            <b-form-group>-->
+<!--              <b-form-radio v-model="product.type" name="some-radios" value="PINGO"-->
+<!--                            @change="switchProductType('PINGO')">PINGO-->
+<!--              </b-form-radio>-->
+<!--            </b-form-group>-->
+<!--          </div>-->
+<!--        </div>-->
+<!--        <div class="row" v-if="product.type==='PINGO'">-->
+<!--          <div class="col-md-4">-->
+<!--            <div class="form-group">-->
+<!--              <label for="field-targetNum" class="control-label">TargetNum-->
+<!--                <span class="text-danger">*</span>-->
+<!--              </label>-->
+<!--              <input type="number" id="field-targetNum" v-model="product.pingo_targetNum" class="form-control"-->
+<!--                     :placeholder="product.pingo_targetNum"/>-->
+<!--            </div>-->
+<!--          </div>-->
+<!--          <div class="col-md-4">-->
+<!--            <div class="form-group">-->
+<!--              <label for="field-currentNum" class="control-label">CurrentNum-->
+<!--                <span class="text-danger">*</span>-->
+<!--              </label>-->
+<!--              <input type="number" id="field-currentNum" v-model="product.pingo_currentNum" class="form-control"-->
+<!--                     :placeholder="product.pingo_currentNum"/>-->
+<!--            </div>-->
+<!--          </div>-->
+<!--          <div class="col-md-4">-->
+<!--            <div class="form-group">-->
+<!--              <label id="fromDate_picker_label">-->
+<!--                Until At:-->
+<!--                <span class="text-danger">*</span>-->
+<!--              </label>-->
+<!--              <el-date-picker-->
+<!--                id="fromDate_picker"-->
+<!--                v-model="product.pingo_until_at"-->
+<!--                align="right"-->
+<!--                type="date"-->
+<!--                placeholder="開始日選択">-->
+<!--              </el-date-picker>-->
+<!--            </div>-->
+<!--          </div>-->
+<!--        </div>-->
         <div class="row">
           <div class="col-md-6">
             <b-form-group id="field-is_valid" label-cols="4" label-cols-lg="4" label-size="sm" label="Active">

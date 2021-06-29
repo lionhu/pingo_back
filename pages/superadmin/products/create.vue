@@ -11,9 +11,6 @@ import "vue-form-wizard/dist/vue-form-wizard.min.css";
 import {mapState, mapGetters} from "vuex";
 import {axios} from "@/plugins/axios";
 
-/**
- * Product-create component
- */
 export default {
   head() {
     return {
@@ -27,19 +24,20 @@ export default {
     };
   },
   mounted() {
-    const param_product=this.$route.params.product;
-    if (param_product!==undefined){
-      this.product.item_name=param_product.item_name;
-      this.product.type=param_product.type;
-      this.product.rate=param_product.rate;
-      this.product.is_valid=param_product.is_valid;
-      this.product.label=param_product.label;
-      this.product.brand=param_product.brand;
-      this.product.series=param_product.series;
-      this.product.model=param_product.model;
-      this.product.video_url=param_product.video_url;
-      this.product.category=param_product.category;
-      this.product.vendor=param_product.vendor;
+    const param_product = this.$route.params.product;
+    if (param_product !== undefined) {
+      this.product.item_name = param_product.item_name;
+      this.product.type = param_product.type;
+      this.product.rate = param_product.rate;
+      this.product.is_valid = param_product.is_valid;
+      this.product.label = param_product.label;
+      this.product.brand = param_product.brand;
+      this.product.series = param_product.series;
+      this.product.model = param_product.model;
+      this.product.sku = param_product.sku;
+      this.product.video_url = param_product.video_url;
+      this.product.category = param_product.category;
+      this.product.vendor = param_product.vendor;
     }
   },
   components: {
@@ -99,6 +97,7 @@ export default {
         purchase_price: 0,
         name: "",
         description: "",
+        sort_by: 0,
         point_rule: {
           is_valid: false,
           type: "amount",
@@ -127,6 +126,7 @@ export default {
         series: "series",
         model: "model",
         image: "",
+        sort_by: 0,
         video_url: "video_url",
         description: "description",
         package: "package",
@@ -428,7 +428,7 @@ export default {
 
             <div>
               <div class="row">
-                <div class="col-md-6">
+                <div class="col-md-4">
                   <div class="form-group mb-3">
                     <label class="mb-2">
                       Type
@@ -447,20 +447,29 @@ export default {
                     </div>
                   </div>
                 </div>
-                <div class="col-md-6">
+                <div class="col-md-2">
 
+                  <div class="form-group mb-3">
+                    <label for="product-sort">
+                      Sort ID:
+                      <span class="text-danger">*</span>
+                    </label>
+                    <input type="number" v-model="product.sort_by" id="product-sort" class="form-control"
+                           :placeholder="product.sort_by"/>
+                  </div>
+                </div>
+              </div>
+              <div class="row">
+                <div class="col-md-4">
                   <div class="form-group mb-3">
                     <label for="product-rate">
                       Rate
                       <span class="text-danger">*</span>
                     </label>
                     <el-rate id="product-rate" v-model="product.rate"></el-rate>
-
                   </div>
                 </div>
-              </div>
-              <div class="row">
-                <div class="col-md-6">
+                <div class="col-md-4">
 
                   <div class="form-group mb-3">
                     <label for="product-active">
@@ -472,7 +481,7 @@ export default {
                               class="ml-1 my-auto"></switches>
                   </div>
                 </div>
-                <div class="col-md-6">
+                <div class="col-md-4">
 
                   <div class="form-group mb-3">
                     <label for="product-category">

@@ -92,8 +92,6 @@ export default {
         parseInt(this.edit_variation.point_rule.policies.user_self)
     },
     profit() {
-      console.log(parseInt(this.edit_variation.price) - parseInt(this.edit_variation.purchase_price) - this.introduction_point_total)
-      console.log(this.edit_variation.point_rule.special_promotion.is_valid ? this.edit_variation.point_rule.special_promotion.bonus : 0)
       let special_promotion_bonus = this.edit_variation.point_rule.special_promotion.is_valid ? this.edit_variation.point_rule.special_promotion.bonus : 0;
 
       return parseInt(this.edit_variation.price) - parseInt(this.edit_variation.purchase_price) - this.introduction_point_total - special_promotion_bonus;
@@ -119,6 +117,7 @@ export default {
     update_product() {
       this.product.vendor_id = this.product.vendor.id;
       this.product.category_id = this.product.category.id;
+      this.product.sort_by = parseInt(this.product.sort_by);
       delete this.product.image;
       delete this.product.thumbimage;
       delete this.product.thumbimage_large;
@@ -162,11 +161,11 @@ export default {
       // const isJPG = file.type === 'image/jpeg';
       const isJPG = true;
       const isLt2M = file.size / 1024 / 1024 < 2;
-      if (!isLt2M ) {
+      if (!isLt2M) {
         swalService.showModal("Invalid picture", "Should be JPEG and below 2M", "warning")
         return false
       }
-      return  isLt2M;
+      return isLt2M;
       // return isJPG && isLt2M;
     },
     handlePostImageAvatarSuccess(res, file) {
@@ -300,7 +299,7 @@ export default {
 
             <div>
               <div class="row">
-                <div class="col-md-6">
+                <div class="col-md-4">
                   <div class="form-group mb-3">
                     <label class="mb-2">
                       Type
@@ -319,15 +318,15 @@ export default {
                     </div>
                   </div>
                 </div>
-                <div class="col-md-6">
+                <div class="col-md-2">
 
                   <div class="form-group mb-3">
-                    <label for="product-rate">
-                      Rate
+                    <label for="product-sort">
+                      Sort ID:
                       <span class="text-danger">*</span>
                     </label>
-                    <el-rate id="product-rate" v-model="product.rate"></el-rate>
-
+                    <input type="number" v-model="product.sort_by" id="product-sort" class="form-control"
+                           :placeholder="product.sort_by"/>
                   </div>
                 </div>
               </div>
@@ -368,26 +367,27 @@ export default {
                 </div>
               </div>
               <div class="row">
-                <div class="col-md-6">
-
+                <div class="col-md-4">
                   <div class="form-group mb-3">
-                    <label for="product-active">
-                      Active
+                    <label for="product-rate">
+                      Rate
                       <span class="text-danger">*</span>
                     </label>
+                    <el-rate id="product-rate" v-model="product.rate"></el-rate>
+                  </div>
+                </div>
+                <div class="col-md-4">
+                  <div class="form-group mb-3">
+                    <label for="product-active">Active<span class="text-danger">*</span></label> <br>
                     <switches v-model="product.is_valid" id="product-active" type-bold="false"
                               color="warning"
                               class="ml-1 my-auto"></switches>
                   </div>
                 </div>
-                <div class="col-md-6">
-
+                <div class="col-md-4">
                   <div class="form-group mb-3">
-                    <label for="product-category">
-                      Label
-                      <span class="text-danger">*</span>
-                    </label>
-                    <el-select v-model="product.label" placeholder="请选择">
+                    <label for="product-label">Label<span class="text-danger">*</span></label> <br>
+                    <el-select v-model="product.label" placeholder="请选择" id="product-label">
                       <el-option
                         v-for="item in labels"
                         :key="item.value"

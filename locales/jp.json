@@ -211,6 +211,9 @@
           "TRANSFER_OUT": "ポイント譲渡",
           "TRANSFER_IN": "ポイント受取"
         }
+      },
+      "pointbanks": {
+        "text": "持ちポイント"
       }
     },
     "calendar": {

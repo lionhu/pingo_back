@@ -21,6 +21,7 @@ export default {
         description: "",
         variation_type: "",
         inventory: 0,
+        sort_by:0,
         point_rule: {
           is_valid: false,
           type: "amount",
@@ -149,7 +150,7 @@ export default {
                         <thead class="thead-light">
                         <tr>
                           <th>name</th>
-                          <th>description</th>
+                          <th>Order</th>
                           <th>Inventory</th>
                           <th>price</th>
                           <th>point_rule</th>
@@ -176,7 +177,9 @@ export default {
                               <i v-else class="el-icon-plus avatar-uploader-icon"></i>
                             </el-upload>
                           </td>
-                          <td>{{ variation.description.substr(0, 50) + "..." }}</td>
+                          <td  class="text-center">
+                            <b-badge variant="danger" pill >{{ variation.sort_by }}</b-badge>
+                          </td>
                           <td class="text-center">{{ variation.inventory }}</td>
                           <td class="text-right">
                             <span class="d-block">{{ variation.price|currency("¥") }}</span>

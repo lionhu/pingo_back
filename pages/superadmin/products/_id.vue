@@ -402,7 +402,7 @@ export default {
                   <thead class="thead-light">
                   <tr>
                     <th>name</th>
-                    <th>description</th>
+                    <th>Order</th>
                     <th>price</th>
                     <th>point_rule</th>
                     <th></th>
@@ -410,8 +410,9 @@ export default {
                   </thead>
                   <tbody>
                   <tr v-for="variation in variations_admin">
-                    <td>{{ variation.name }}</td>
-                    <td>{{ variation.description.substr(0, 50) + "..." }}</td>
+                    <td>
+                      {{ variation.name }}</td>
+                    <td><b-badge variant="danger" pill >{{ variation.sort_by }}</b-badge></td>
                     <td>
                       <span class="d-block">{{ variation.price|currency("¥") }}</span>
                       <span class="d-block">{{ variation.purchase_price|currency("¥") }}</span>
