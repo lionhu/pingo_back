@@ -30,10 +30,10 @@ File: Main Css File (Default Demo)
 @import "custom/structure/two-column-menu";
 
 //Components
-//@import "custom/components/avatar";
+@import "custom/components/avatar";
 //@import "custom/components/helper";
 //@import "custom/components/social";
-//@import "custom/components/widgets";
+@import "custom/components/widgets";
 //@import "custom/components/custom-checkbox";
 //@import "custom/components/custom-radio";
 @import "custom/components/ribbons";

@@ -17,6 +17,7 @@ export default {
     };
   },
   components: {
+    "countTo":()=>import('vue-count-to'),
     "el-table": () => import('element-ui/lib/table'),
     "el-table-column": () => import('element-ui/lib/table-column'),
     "el-date-picker": () => import('element-ui/lib/date-picker'),
@@ -25,7 +26,15 @@ export default {
     "el-option": () => import('element-ui/lib/option'),
   },
   computed: {
-    ...mapGetters({})
+    total(){
+      if(this.pointbanks.length===0) return 0;
+      return this.pointbanks.reduce( (accumulator, val) => {
+        console.log(parseInt(val.point))
+         accumulator += parseInt(val.point)
+        return accumulator
+      },0)
+      // return this.pointbanks.reduce( (accumulator, val) => accumulator + parseInt(val.point))
+    }
   },
   data() {
     return {
@@ -65,7 +74,7 @@ export default {
       var dt = new Date();
       return new Date(dt.setDate(dt.getDate() + 365)).toISOString();
     },
-    load_margins() {
+    load_pointbanks() {
       let vm = this;
       this.isLoading = true;
       if (this.filters.user_id===""){
@@ -149,6 +158,53 @@ export default {
   <div>
     <PageHeader :title="title" :items="items"/>
     <div class="row">
+      <div class="col-6">
+        <div class="widget-rounded-circle card">
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-6">
+                            <div class="avatar-lg rounded-circle bg-icon-primary">
+                                <i class="ri-coin-fill font-24 avatar-title text-white"></i>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="text-right">
+                                <h3 class="text-dark mt-1">
+                                    <span>
+                                        <countTo :end-val="total" :duration="1500"></countTo>
+                                    </span>
+                                </h3>
+                                <p class="text-muted mb-1 text-truncate">Total Points</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div></div>
+      <div class="col-6">
+        <div class="widget-rounded-circle card">
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-6">
+                            <div class="avatar-lg rounded-circle bg-icon-success">
+                                <i class="ri-auction-fill font-24 avatar-title text-white"></i>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="text-right">
+                                <h3 class="text-dark mt-1">
+                                    <span>
+                                        <countTo :end-val="pointbanks.length" :duration="1500"></countTo>
+                                    </span>
+                                </h3>
+                                <p class="text-muted mb-1 text-truncate">{{pointbanks.length}} records</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+      </div>
+    </div>
+    <div class="row">
       <div class="col-12">
         <div class="card">
           <div class="card-body">
@@ -224,7 +280,7 @@ export default {
             <div class="row">
               <div class="col-12 text-right">
 
-                <b-button variant="primary" v-bind:disabled="isLoading" class="btn-rounded ml-1" @click="load_margins">
+                <b-button variant="primary" v-bind:disabled="isLoading" class="btn-rounded ml-1" @click="load_pointbanks">
                   <b-spinner small v-if="isLoading"></b-spinner>&nbsp;&nbsp;Load Data
                 </b-button>
               </div>
