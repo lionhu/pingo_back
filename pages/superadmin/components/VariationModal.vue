@@ -118,7 +118,7 @@ export default {
               Sort ID:
               <span class="text-danger">*</span>
             </label>
-            <input type="text" v-model="edit_variation.sort_by" id="product-sort" class="form-control"
+            <input type="number" v-model="edit_variation.sort_by" id="product-sort" class="form-control"
                    :placeholder="edit_variation.sort_by"/>
           </div>
         </div>
