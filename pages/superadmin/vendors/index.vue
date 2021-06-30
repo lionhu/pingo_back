@@ -7,7 +7,7 @@ import {
   minValue,
   url
 } from 'vuelidate/lib/validators'
-
+import ModalVendorEdit from "../components/VendorEditModal"
 
 export default {
   head() {
@@ -24,7 +24,8 @@ export default {
   components: {
     "el-table": () => import('element-ui/lib/table'),
     "el-table-column": () => import('element-ui/lib/table-column'),
-    "el-autocomplete": () => import('element-ui/lib/autocomplete'),
+    // "el-autocomplete": () => import('element-ui/lib/autocomplete'),
+    ModalVendorEdit
   },
   data() {
     return {
@@ -67,23 +68,10 @@ export default {
         name: ""
       },
       vendor_admin_name: "",
-
+      visible_VendorEdit: false,
+      edit_vendor_id: 0,
       submitted: false
     };
-  },
-  validations: {
-    vendor: {
-      name: {required},
-      postcode: {required},
-      state: {required},
-      city: {required},
-      town: {required},
-      address_1: {required},
-      phone: {required},
-      email: {required, email},
-      website: {required, url},
-      admin_id: {required, minValue: minValue(1)}
-    }
   },
   computed: {
     ...mapState({
@@ -112,12 +100,6 @@ export default {
     load_vendors_list(options) {
       this.$store.dispatch("vendors/load_superadmin_vendorlist", options);
     },
-    updateVendorInfo() {
-      var edit_vendor = this.vendor;
-      if (edit_vendor.id) {
-        this.$store.dispatch("vendors/update_vendor", edit_vendor);
-      }
-    },
     removeVendorInfo(vendor_id) {
       if (vendor_id) {
         let vm = this;
@@ -134,80 +116,6 @@ export default {
             this.$store.dispatch("vendors/remove_vendor", vendor_id);
           }
         })
-      }
-    },
-    insertVendor() {
-      this.submitted = true
-      this.$v.$touch()
-      if (!this.$v.$invalid) {
-        this.$store.dispatch("vendors/insert_vendor", this.vendor)
-        this.$bvModal.hide("modal-responsive")
-      }
-
-    },
-    handleSelect(item) {
-      this.vendor.admin_id = item.id;
-    },
-    querySearchAsync(queryString, cb) {
-      let url = `/apiauth/users/?search=${queryString}`
-      this.$axios.get(url).then((response) => {
-        console.log(response)
-        if (response.data.result && response.data.data.users.total) {
-          var selectlist = response.data.data.users.results.map(function (user) {
-            return {id: user.id, value: user.username}
-          })
-          cb(selectlist)
-        }
-      })
-    },
-    autocomplete_adminname() {
-      let vm = this;
-      let admin_id = parseInt(this.vendor.admin_id)
-      if (admin_id > 0) {
-        this.$axios.post(`/apiauth/users/${admin_id}/get_username/`)
-          .then(response => {
-
-            console.log(response.data)
-            if (response.data.result) {
-              vm.vendor_admin_name = response.data.username
-            } else {
-              vm.vendor_admin_name = ""
-              vm.vendor.admin_id = 0;
-            }
-            // return response.json()
-          }).catch(error => {
-          Swal.showValidationMessage(
-            `Request failed: ${error}`
-          )
-        })
-      }
-
-    },
-    autocomplete_postcode() {
-      // console.log(this.user.postcode.length)
-      if (this.vendor.postcode.length > 6) {
-        var vm = this;
-        this.auto_searching = true;
-
-        var url = "https://api.anko.education/zipcode?zipcode=" + this.vendor.postcode;
-        fetch(url)
-          .then(function (response) {
-            if (response.ok) {
-              return response.json();
-            }
-          })
-          .then(function (address) {
-            if (address !== undefined) {
-              vm.autocomplete_address = true;
-              vm.vendor.state = address.pref;
-              vm.vendor.city = address.city;
-              vm.vendor.town = address.area;
-            }
-          }).catch((error) => {
-          console.error('Error:', error);
-          vm.autocomplete_address = false;
-        });
-        this.auto_searching = false;
       }
     },
 
@@ -285,14 +193,10 @@ export default {
               )
             }
           })
-          // Swal.fire({
-          //   title: `new Admin: ${result.value}`
-          // })
         }
       })
     },
     onFiltered(filteredItems) {
-      // Trigger pagination to update the number of buttons/pages due to filtering
       this.totalRows = filteredItems.length;
       this.currentPage = 1;
     },
@@ -309,8 +213,16 @@ export default {
       this.multipleSelection = val;
       console.log(this.multipleSelection)
     },
-    expangeChange(row) {
-      this.vendor = row;
+    showVendorModal(vendor_id, mode) {
+      this.edit_vendor_id = vendor_id;
+      this.mode = mode;
+      this.visible_VendorEdit = true;
+    },
+    closeVendorModal(info) {
+      if (info.result) {
+        this.mode = "";
+        this.visible_VendorEdit = false;
+      }
     }
   },
   middleware: ['router-auth', 'router-superadmin'],
@@ -327,165 +239,10 @@ export default {
     <div class="row mb-2">
       <div class="col-sm-6 offset-sm-6">
         <div class="float-sm-right">
-          <b-button v-b-modal.modal-responsive variant="danger">Add Vendor</b-button>
-          <b-modal id="modal-responsive" scrollable title="New Vendor Information" title-class="font-18"
-                   body-class="p-4" hide-footer>
-            <form @submit.prevent="insertVendor">
-              <div class="row">
-                <div class="col-md-12">
-                  <div class="form-group">
-                    <label for="field-name" class="control-label">Name
-                      <span class="text-danger">*</span>
-                    </label>
-                    <input type="text" id="field-name" v-model="vendor.name" class="form-control"
-                           :class="{ 'is-invalid': submitted && $v.vendor.name.$error }" placeholder="Name"/>
-
-                    <div v-if="submitted && !$v.vendor.name.required" class="invalid-feedback">This value is required.
-                    </div>
-                  </div>
-                </div>
-              </div>
-              <div class="row">
-                <div class="col-md-6">
-                  <div class="form-group">
-                    <label for="field-postcode" class="control-label">Postcode<span class="text-danger">*</span></label>
-                    <input type="text" v-model="vendor.postcode" id="field-postcode" class="form-control"
-                           placeholder="Postcode" :class="{ 'is-invalid': submitted && $v.vendor.postcode.$error }"
-                           @blur="autocomplete_postcode"/>
-                    <div v-if="submitted && !$v.vendor.postcode.required" class="invalid-feedback">This value is
-                      required.
-                    </div>
-                  </div>
-                </div>
-                <div class="col-md-6">
-
-                  <div class="form-group">
-                    <label for="field-state" class="control-label">State<span class="text-danger">*</span></label>
-                    <input type="text" id="field-state" v-model="vendor.state" class="form-control"
-                           placeholder="Boston" :class="{ 'is-invalid': submitted && $v.vendor.state.$error }"/>
-
-                    <div v-if="submitted && !$v.vendor.state.required" class="invalid-feedback">This value is required.
-                    </div>
-                  </div>
-                </div>
-              </div>
-              <div class="row">
-                <div class="col-md-6">
-                  <div class="form-group">
-                    <label for="field-city" class="control-label">City<span class="text-danger">*</span></label>
-                    <input type="text" id="field-city" v-model="vendor.city" class="form-control"
-                           placeholder="United States" :class="{ 'is-invalid': submitted && $v.vendor.city.$error }"/>
-
-                    <div v-if="submitted && !$v.vendor.city.required" class="invalid-feedback">This value is required.
-                    </div>
-                  </div>
-                </div>
-                <div class="col-md-6">
-                  <div class="form-group">
-                    <label for="field-town" class="control-label">Town<span class="text-danger">*</span></label>
-                    <input type="text" id="field-town" :class="{ 'is-invalid': submitted && $v.vendor.town.$error }"
-                           v-model="vendor.town" class="form-control" placeholder="123456"/>
-
-                    <div v-if="submitted && !$v.vendor.town.required" class="invalid-feedback">This value is required.
-                    </div>
-                  </div>
-                </div>
-              </div>
-              <div class="row">
-                <div class="col-md-12">
-                  <div class="form-group">
-                    <label for="field-address1" class="control-label">Address<span class="text-danger">*</span></label>
-                    <input type="text" id="field-address1" v-model="vendor.address_1" class="form-control"
-                           placeholder="Address_1" :class="{ 'is-invalid': submitted && $v.vendor.address_1.$error }"/>
-
-                    <div v-if="submitted && !$v.vendor.address_1.required" class="invalid-feedback">This value is
-                      required.
-                    </div>
-                    <input type="text" id="field-address2" v-model="vendor.address_2" class="form-control"
-                           placeholder="Address_2"/>
-                  </div>
-                </div>
-              </div>
-              <div class="row">
-                <div class="col-md-12">
-                  <div class="form-group">
-                    <label for="field-phone" class="control-label">Phone<span class="text-danger">*</span></label>
-                    <input type="text" id="field-phone" v-model="vendor.phone" class="form-control"
-                           placeholder="Phone" :class="{ 'is-invalid': submitted && $v.vendor.phone.$error }"/>
-
-                    <div v-if="submitted && !$v.vendor.phone.required" class="invalid-feedback">This value is required.
-                    </div>
-                  </div>
-                </div>
-              </div>
-              <div class="row">
-                <div class="col-md-12">
-                  <div class="form-group">
-                    <label for="field-email" class="control-label">Email<span class="text-danger">*</span></label>
-                    <input type="text" id="field-email" v-model="vendor.email" class="form-control"
-                           placeholder="email" :class="{ 'is-invalid': submitted && $v.vendor.email.$error }"/>
-
-                    <div v-if="submitted && !$v.vendor.email.required" class="invalid-feedback">This value is required.
-                    </div>
-                    <div v-if="submitted && !$v.vendor.email.email" class="invalid-feedback">not a valid email.
-                    </div>
-                  </div>
-                </div>
-              </div>
-              <div class="row">
-                <div class="col-md-12">
-                  <div class="form-group">
-                    <label for="field-email" class="control-label">Website<span class="text-danger">*</span></label>
-                    <input type="text" id="field-website" v-model="vendor.website" class="form-control"
-                           placeholder="website" :class="{ 'is-invalid': submitted && $v.vendor.website.$error }"/>
-
-                    <div v-if="submitted && !$v.vendor.website.required" class="invalid-feedback">This value is
-                      required.
-                    </div>
-                    <div v-if="submitted && !$v.vendor.website.url" class="invalid-feedback">not a valid url.
-                    </div>
-                  </div>
-                </div>
-              </div>
-              <div class="row">
-                <div class="col-md-6">
-                  <div class="form-group no-margin">
-                    <label for="field-admin_id" class="control-label">Admin ID(#{{ vendor.admin_id }})<span
-                      class="text-danger">*</span></label>
-                    <el-autocomplete
-                      v-model="admin.username"
-                      :fetch-suggestions="querySearchAsync"
-                      placeholder="请输入内容"
-                      @select="handleSelect"
-                    ></el-autocomplete>
-                    <input type="text" id="field-admin_id" v-model="vendor.admin_id" class="form-control" hidden/>
-
-                    <div v-if="submitted && !$v.vendor.admin_id.required" class="invalid-feedback">required a numeric
-                      value.
-                    </div>
-                    <div v-if="submitted && !$v.vendor.admin_id.numeric" class="invalid-feedback">not a numeric value.
-                    </div>
-                    <div v-if="submitted && !$v.vendor.admin_id.minValue" class="invalid-feedback">must bigger than 1.
-                    </div>
-                  </div>
-                </div>
-                <div class="col-md-6">
-                  <div class="form-group no-margin">
-                    <label class="control-label">{{ vendor_admin_name }}</label>
-                  </div>
-                </div>
-              </div>
-
-              <div class="form-group row">
-                <div class="col-8 offset-4">
-                  <button type="submit" class="btn btn-primary">Submit</button>
-                  <button type="reset" class="btn btn-secondary m-l-5 ml-1">Cancel</button>
-                </div>
-              </div>
-            </form>
-
-          </b-modal>
-
+          <b-button v-b-modal.modal-edit-vendor
+                    variant="danger" @click="showVendorModal(0,'add')">
+            Add Vendor
+          </b-button>
         </div>
       </div>
       <!-- end col-->
@@ -496,11 +253,6 @@ export default {
           <div class="card-body">
             <div class="row mb-2">
               <div class="col-sm-6">
-                <!--                <nuxt-link to="/ecommerce/product-create" class="btn btn-danger mb-2"><i-->
-                <!--                  class="mdi mdi-plus-circle mr-1"></i> Add Products-->
-                <!--                </nuxt-link>-->
-                <!--                <a href="javascript:void(0)" @click="show_add_client" class="btn btn-danger mb-2"><i-->
-                <!--                  class="mdi mdi-plus-circle mr-1"></i>Add Client</a>-->
               </div>
               <div class="col-sm-6">
                 <div class="float-sm-right">
@@ -523,12 +275,6 @@ export default {
               <!-- Search -->
               <div class="col-sm-12 col-md-6">
                 <div id="tickets-table_filter" class="dataTables_filter text-md-right">
-                  <!--                  <label class="d-inline-flex align-items-center">-->
-                  <!--                    Search:-->
-                  <!--                    <b-form-input v-model="filter" type="search" placeholder="Search..."-->
-                  <!--                                  class="form-control form-control-sm ml-2"></b-form-input>-->
-                  <!--                  </label>-->
-
                   <div class="input-group d-inline-flex align-items-center">
                     <input type="text" class="form-control" placeholder="username or email"
                            aria-describedby="basic-addon2" v-model="searchkey"/>
@@ -548,7 +294,6 @@ export default {
                 :data="list.results"
                 tooltip-effect="dark"
                 style="width: 100%"
-                @expand-change="expangeChange"
                 @selection-change="handleSelectionChange">
                 <el-table-column
                   type="selection"
@@ -637,8 +382,11 @@ export default {
                           <i class="mdi mdi-eye"></i></a>
                       </li>
                       <li class="list-inline-item">
-                        <a href="javascript:void(0);" class="action-icon">
-                          <i class="mdi mdi-square-edit-outline"></i></a>
+
+                        <a href="javascript:void(0);" v-b-modal.modal-edit-vendor variant="danger"
+                           @click="showVendorModal(scope.row.id,'edit')">
+                          <i class="fe-edit"></i>
+                        </a>
                       </li>
                       <li class="list-inline-item">
                         <a href="javascript:void(0);" class="action-icon" @click="removeVendorInfo(scope.row.id)">
@@ -670,5 +418,7 @@ export default {
         </div>
       </div>
     </div>
+    <ModalVendorEdit :showModal="visible_VendorEdit" :mode="mode" :vendor_id="edit_vendor_id"
+                     @closeMoal="closeVendorModal"/>
   </div>
 </template>

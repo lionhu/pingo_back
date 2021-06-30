@@ -107,10 +107,10 @@ export default {
     <!--                      title="商品別"/>-->
     <div class="row">
       <div class="col-md-6 col-xs-12">
-        <UnapprovedPoints :unapprovedpoints_data="unApprovedPoints" header_title="未承認ポイント　サマリー" title="カテゴリ別"/>
+        <UnapprovedPoints :unapprovedpoints_data="unApprovedPoints" header_title="未承認ポイント" title="カテゴリ別"/>
       </div>
       <div class="col-md-6 col-xs-12">
-        <UnapprovedUserPoint :unapprovedpoints_data="unApprovedUserPoints" header_title="未承認ポイント　サマリー" title="ユーザー別(Top3)"/>
+        <UnapprovedUserPoint :unapprovedpoints_data="unApprovedUserPoints" header_title="未承認ポイント" title="ユーザー別(Top3)"/>
       </div>
     </div>
     <PointUserRanking :user_ranking="user_ranking" header_title="持ちポイントランキング" title="ユーザー別(Top3)"></PointUserRanking>

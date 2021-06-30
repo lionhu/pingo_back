@@ -62,18 +62,7 @@ export default {
           },
           title: {
             text: this.title
-          },
-          // responsive: [{
-          //   breakpoint: 480,
-          //   options: {
-          //     chart: {
-          //       width: 200
-          //     },
-          //     legend: {
-          //       position: 'bottom'
-          //     }
-          //   }
-          // }]
+          }
         };
 
         var chart = new ApexCharts(document.querySelector("#unapprovedchart"), options);
@@ -87,7 +76,10 @@ export default {
 <template>
   <div class="card">
     <div class="card-body">
-      <h5>{{ header_title }}</h5>
+      <h5>
+        {{ header_title }}
+        <nuxt-link to="/superadmin/points" class="btn btn-rounded btn-outline-info inline-block float-right btn-sm">Details</nuxt-link>
+      </h5>
       <div id="unapprovedchart"></div>
     </div>
   </div>

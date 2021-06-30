@@ -201,7 +201,7 @@
         "text": "ベンダー注文"
       },
       "points": {
-        "text": "ポイント",
+        "text": "未承認ポイント",
         "type": {
           "OrderBonus": "購入取得ボーナス",
           "DesendentOrderPoint": "製品紹介購入",
@@ -213,7 +213,7 @@
         }
       },
       "pointbanks": {
-        "text": "持ちポイント"
+        "text": "承認済みポイント"
       }
     },
     "calendar": {

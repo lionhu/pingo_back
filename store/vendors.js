@@ -36,10 +36,9 @@ export const actions = {
   },
   remove_vendor({commit}, vendor_id) {
     vendorService.remove(vendor_id).then(res => {
-      console.log(res)
-      if (res.vendor_id) {
-        console.log(res)
-        commit("removeVendor", parseInt(res.vendor_id))
+      let vendor_id=parseInt(res.pk)
+      if (vendor_id) {
+        commit("removeVendor", vendor_id)
         Swal.fire("Success","Vendor Information Removed","success");
       }
     })
@@ -61,9 +60,7 @@ export const mutations = {
     }
   },
   removeVendor(state, vendor_id) {
-    console.log(vendor_id)
     const index=state.list.results.findIndex(vendor=>vendor.id===vendor_id)
-    console.log(index)
     if(index>-1){
       state.list.results.splice(index,1);
     }

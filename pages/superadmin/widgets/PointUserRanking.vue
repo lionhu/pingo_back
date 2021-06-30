@@ -106,7 +106,10 @@ export default {
 <template>
   <div className="card">
     <div className="card-body">
-      <h5>{{ header_title }}</h5>
+      <h5>
+        {{ header_title }}
+        <nuxt-link to="/superadmin/pointbanks" class="btn btn-rounded btn-outline-info inline-block float-right btn-sm">Details</nuxt-link>
+      </h5>
       <div id="userpointbank"></div>
     </div>
   </div>
