@@ -56,7 +56,7 @@ export default {
         until_at__lte: this.year_after(),
         user_id: "",
       },
-      selectUsername: "",
+      selectUser: null,
       userlist: [],
       multipleSelection: [],
       isLoading: false,
@@ -145,9 +145,16 @@ export default {
         this.filters.user_id="";
         return false;
     },
-
+ResetUserSearch(){
+      this.filters.user_id="";
+},
     handleSelectUser(item) {
       console.log(item);
+      var userIndex=this.userlist.findIndex(user=>user.id ==item);
+      console.log(userIndex)
+      if (userIndex>-1){
+        this.selectUser=this.userlist[userIndex];
+      }
     },
   },
   middleware: ['router-auth', 'router-superadmin'],
@@ -158,7 +165,7 @@ export default {
   <div>
     <PageHeader :title="title" :items="items"/>
     <div class="row">
-      <div class="col-6">
+      <div class="col-md-4 col-xs-12">
         <div class="widget-rounded-circle card">
                 <div class="card-body">
                     <div class="row">
@@ -180,7 +187,7 @@ export default {
                     </div>
                 </div>
             </div></div>
-      <div class="col-6">
+      <div class="col-md-4 col-xs-12">
         <div class="widget-rounded-circle card">
                 <div class="card-body">
                     <div class="row">
@@ -201,6 +208,32 @@ export default {
                         </div>
                     </div>
                 </div>
+            </div>
+      </div>
+      <div class="col-md-4 col-xs-12" v-if="selectUser!==null">
+        <div class="widget-rounded-circle card">
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col-auto">
+                            <div class="avatar-lg">
+                              <div class="avatar-lg rounded-circle bg-icon-warning">
+                                <img :src="`https://www.pingo.jp/mediafiles/${selectUser.avatar}`"
+                                     style="max-width: 60px;border-radius:100%;"
+                                     v-if="selectUser.avatar!==null">
+                                <i class="ri-map-pin-user-fill font-24 avatar-title text-white" v-else></i>
+                            </div>
+                            </div>
+                        </div>
+                        <div class="col">
+                            <h5 class="mt-0">{{selectUser.username}}</h5>
+                            <p class="text-muted mb-1 font-13">{{selectUser.email}}</p>
+<!--                            <small class="text-muted">-->
+<!--                                <b>user.type</b>-->
+<!--                            </small>-->
+                        </div>
+                    </div>
+                </div>
+                <!-- end row-->
             </div>
       </div>
     </div>
@@ -262,6 +295,7 @@ export default {
                     filterable
                     remote
                     reserve-keyword
+                    @change="handleSelectUser"
                     placeholder="请输入关键词"
                     :remote-method="querySearchUser"
                     :loading="loading">
@@ -272,6 +306,7 @@ export default {
                       :value="item.id">
                     </el-option>
                   </el-select>
+                  <b-button variant="primary" @click="ResetUserSearch">Reset</b-button>
                 </div>
               </div>
               <div class="col-md-4">
@@ -339,24 +374,21 @@ export default {
                     <span >({{ scope.row.created_at | short_date }})</span>
                   </template>
                 </el-table-column>
-                <el-table-column
-                  label="Action">
-                  <template slot-scope="scope">
-                    <ul class="list-inline table-action m-0">
-                      <li class="list-inline-item">
-                        <a href="javascript:void(0);" ><i class="fe-edit-2"></i></a>
-<!--                        <a href="javascript:void(0);" @click="updateMarginAmount(scope.row.id)">-->
-<!--                          <i class="fe-edit-2"></i>-->
+<!--                <el-table-column-->
+<!--                  label="Action">-->
+<!--                  <template slot-scope="scope">-->
+<!--                    <ul class="list-inline table-action m-0">-->
+<!--                      <li class="list-inline-item">-->
+<!--                        <a href="javascript:void(0);" ><i class="fe-edit-2"></i></a>-->
+<!--                      </li>-->
+<!--                      <li class="list-inline-item">-->
+<!--                        <a href="javascript:void(0);" @click="deleteMargin(scope.row.id)">-->
+<!--                          <i class="fe-trash"></i>-->
 <!--                        </a>-->
-                      </li>
-                      <li class="list-inline-item">
-                        <a href="javascript:void(0);" @click="deleteMargin(scope.row.id)">
-                          <i class="fe-trash"></i>
-                        </a>
-                      </li>
-                    </ul>
-                  </template>
-                </el-table-column>
+<!--                      </li>-->
+<!--                    </ul>-->
+<!--                  </template>-->
+<!--                </el-table-column>-->
               </el-table>
 
             </div>
