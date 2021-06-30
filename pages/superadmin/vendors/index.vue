@@ -10,6 +10,7 @@ import {
 import ModalVendorEdit from "../components/VendorEditModal"
 
 export default {
+  name:"vendor_list",
   head() {
     return {
       title: `${this.title} | Admin Dashboard`,

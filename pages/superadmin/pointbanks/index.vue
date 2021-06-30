@@ -104,32 +104,10 @@ export default {
       //     vm.remove_margin(margin_id)
       //   });
     },
-    // async updateMarginAmount(margin_id) {
-    //
-    //   const {value: amount} = await Swal.fire({
-    //     icon: "question",
-    //     title: 'Enter amount',
-    //     input: 'text',
-    //     showCancelButton: true,
-    //     inputValidator: (value) => {
-    //       if (!value) {
-    //         return 'You need to write something!'
-    //       }
-    //     }
-    //   })
-    //
-    //   if (parseInt(amount)) {
-    //     let info = {
-    //       id: margin_id,
-    //       amount: parseInt(amount)
-    //     }
-    //     this.update_margin_common(info)
-    //   }
-    // },
     querySearchUser(query) {
       let vm = this;
       vm.userlist = [];
-      if (query !== '') {
+      if (query.length>2) {
         this.loading = true;
         axios.$post("/apiauth/login/filter_users/", {keystr: query})
           .then((response) => {
@@ -374,21 +352,6 @@ ResetUserSearch(){
                     <span >({{ scope.row.created_at | short_date }})</span>
                   </template>
                 </el-table-column>
-<!--                <el-table-column-->
-<!--                  label="Action">-->
-<!--                  <template slot-scope="scope">-->
-<!--                    <ul class="list-inline table-action m-0">-->
-<!--                      <li class="list-inline-item">-->
-<!--                        <a href="javascript:void(0);" ><i class="fe-edit-2"></i></a>-->
-<!--                      </li>-->
-<!--                      <li class="list-inline-item">-->
-<!--                        <a href="javascript:void(0);" @click="deleteMargin(scope.row.id)">-->
-<!--                          <i class="fe-trash"></i>-->
-<!--                        </a>-->
-<!--                      </li>-->
-<!--                    </ul>-->
-<!--                  </template>-->
-<!--                </el-table-column>-->
               </el-table>
 
             </div>
