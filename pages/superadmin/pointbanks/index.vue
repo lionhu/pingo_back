@@ -60,9 +60,13 @@ export default {
       multipleExpiredPointSelection: [],
       isLoading: false,
       pointbanks: [],
+      expired_pointbanks: [],
       loading: false,
       value: ""
     };
+  },
+  mounted() {
+    this.load_expiredPointbanks();
   },
   methods: {
     week_before() {
@@ -88,13 +92,12 @@ export default {
       this.isLoading = false;
     },
     load_expiredPointbanks() {
-
       let vm = this;
       this.isLoading = true;
       axios.$post("/admin_back/api/pointbanks/list_expired/")
         .then((response) => {
           if (response.result) {
-            vm.pointbanks = response.data.pointlist;
+            vm.expired_pointbanks = response.data.pointlist;
           }
         })
       this.isLoading = false;
@@ -164,7 +167,7 @@ export default {
     <PageHeader :title="title" :items="items"/>
 
     <b-tabs justified pills class="navtab-bg" content-class="mt-3" @activate-tab="ChangeTab">
-      <b-tab title="失効ポイント">
+      <b-tab title="失効ポイント" v-if="expired_pointbanks.length">
         <template #title>
           <b-spinner type="grow" small class="mr-3 text-danger"></b-spinner>
           <strong>失効ポイント</strong>
@@ -232,7 +235,7 @@ export default {
                     <!-- Table -->
                     <div class="table-responsive mb-0">
                       <el-table
-                        :data="pointbanks"
+                        :data="expired_pointbanks"
                         style="width: 100%"
                         @selection-change="handleExpiredSelectionChange"
                       >

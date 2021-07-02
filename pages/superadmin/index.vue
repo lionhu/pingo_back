@@ -46,24 +46,25 @@ export default {
     }
   },
   async asyncData() {
-    const response_data=await axios.post("/admin_back/api/admin_dashboard/get_charts/")
+    const response_data = await axios.post("/admin_back/api/admin_dashboard/get_charts/")
       .then(response => {
         if (response.data.result) {
           return response.data.charts;
         }
       })
+    console.log(response_data)
     return {
       unApprovedPoints: {
-        labels: response_data.margin_summary.labels,
-        data: response_data.margin_summary.datasets[0].data
+        labels: response_data.margin_summary.labels.length?response_data.margin_summary.labels:[],
+        data: response_data.margin_summary.labels.length?response_data.margin_summary.datasets[0].data:[]
       },
       unApprovedUserPoints: {
-        labels: response_data.user_margin_summary.labels,
-        data: response_data.user_margin_summary.datasets
+        labels: response_data.user_margin_summary.labels.length?response_data.user_margin_summary.labels:[],
+        data: response_data.user_margin_summary.labels.length?response_data.user_margin_summary.datasets:[]
       },
       user_ranking: {
-        labels: response_data.user_ranking.labels,
-        data: response_data.user_ranking.datasets[0].data
+        labels: response_data.user_ranking.labels.length?response_data.user_ranking.labels:[],
+        data: response_data.user_ranking.labels.length?response_data.user_ranking.datasets[0].data:[]
       }
       // viewproduct_summary: {
       //   labels:response_data.viewproduct_summary.labels,
@@ -73,8 +74,7 @@ export default {
   },
   mounted() {
   },
-  methods: {
-  },
+  methods: {},
   computed: {
     ...mapState({
       ME: state => state.auth.user
@@ -82,17 +82,14 @@ export default {
     page_title() {
       return "Welcome ! Clients Admin " + this.ME.username;
     },
-    point_balance() {
-      if (this.ME.profile.point_balance === null || this.ME.profile.point_balance === undefined) return 0;
-      return this.ME.profile.point_balance
+    hasUnapprovedPoints() {
+      return this.unApprovedPoints.data.length;
     },
-    validpoint_balance() {
-      if (this.ME.profile.validpoint_balance === null || this.ME.profile.validpoint_balance === undefined) return 0;
-      return this.ME.profile.validpoint_balance
+    hasunApprovedUserPoints() {
+      return this.unApprovedUserPoints.data.length;
     },
-    invalidpoint_balance() {
-      if (this.ME.profile.invalidpoint_balance === null || this.ME.profile.invalidpoint_balance === undefined) return 0;
-      return this.ME.profile.invalidpoint_balance
+    hasUserRanking() {
+      return this.user_ranking.data.length;
     }
   },
 }
@@ -102,26 +99,35 @@ export default {
   <div>
     <PageHeader :title="page_title" :items="items"/>
 
-    <!--    <ViewProductRanking :viewproduct_summary="viewproduct_summary"-->
-    <!--                        header_title="閲覧商品ランキング"-->
-    <!--                      title="商品別"/>-->
-    <div class="row">
-      <div class="col-md-6 col-xs-12">
-        <UnapprovedPoints :unapprovedpoints_data="unApprovedPoints" header_title="未承認ポイント" title="カテゴリ別"/>
-      </div>
-      <div class="col-md-6 col-xs-12">
-        <UnapprovedUserPoint :unapprovedpoints_data="unApprovedUserPoints" header_title="未承認ポイント" title="ユーザー別(Top3)"/>
-      </div>
+        <div class="row">
+          <div class="col-md-6 col-xs-12">
+            <UnapprovedPoints :unapprovedpoints_data="unApprovedPoints"
+                              header_title="未承認ポイント"
+                              title="カテゴリ別"
+                              v-if="hasUnapprovedPoints"
+            />
+          </div>
+          <div class="col-md-6 col-xs-12">
+            <UnapprovedUserPoint :unapprovedpoints_data="unApprovedUserPoints"
+                                 header_title="未承認ポイント"
+                                 title="ユーザー別(Top3)"
+                                 v-if="hasunApprovedUserPoints"
+            />
+          </div>
+        </div>
+        <PointUserRanking :user_ranking="user_ranking"
+                          header_title="持ちポイントランキング"
+                          title="ユーザー別(Top3)"
+                          v-if="hasUserRanking"
+        ></PointUserRanking>
+        <div class="row">
+    <div class="col-6">
+      <!--        <VisitLogSummary/>-->
     </div>
-    <PointUserRanking :user_ranking="user_ranking" header_title="持ちポイントランキング" title="ユーザー別(Top3)"></PointUserRanking>
-    <div class="row">
-      <div class="col-6">
-<!--        <VisitLogSummary/>-->
-      </div>
-      <div class="col-6">
-<!--        <RegisteredUsers/>-->
-      </div>
+    <div class="col-6">
+      <!--        <RegisteredUsers/>-->
     </div>
+  </div>
 
   </div>
 </template>
