@@ -6,24 +6,24 @@ import {axios} from "@/plugins/axios";
 import CKEditor from "@ckeditor/ckeditor5-vue";
 import ClassicEditor from "@ckeditor/ckeditor5-build-classic";
 
-const empty_product = {
-  id: 0,
-  item_name: "",
-  is_valid: false,
-  rate: 0,
-  vendor: {
-    id: 0,
-    name: ""
-  },
-  category: {
-    id: 0,
-    title: ""
-  },
-  type: "",
-  pingo_currentNum: 0,
-  pingo_targetNum: 10,
-  pingo_until_at: ""
-};
+// const empty_product = {
+//   id: 0,
+//   item_name: "",
+//   is_valid: false,
+//   rate: 0,
+//   vendor: {
+//     id: 0,
+//     name: ""
+//   },
+//   category: {
+//     id: 0,
+//     title: ""
+//   },
+//   type: "",
+//   pingo_currentNum: 0,
+//   pingo_targetNum: 10,
+//   pingo_until_at: ""
+// };
 export default {
   name: "faqs_list",
   head() {
