@@ -198,6 +198,9 @@ export default {
         vm.marginlist.splice(index, 1)
         Swal.fire("Success", "margins has been removed!", "success")
       }
+    },
+    rowSelectable(row, index){
+      return !!(row.is_refound=1 && row.pointbank_saved===false)
     }
 
   },
@@ -297,6 +300,7 @@ export default {
               >
                 <el-table-column
                   type="selection"
+                  :selectable="rowSelectable"
                   width="55">
                 </el-table-column>
                 <el-table-column label="ID" sortable prop="id">

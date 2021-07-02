@@ -34,10 +34,35 @@
         roles:["superadmin"],
     },
     {
-        id: 6,
+        id: 3,
         label: "menuitems.ecommerce.text",
         isTitle: true,
         roles:["superadmin"],
+    },
+    {
+        id: 4,
+        label: "menuitems.ecommerce.point_management.title",
+        icon: "ri-coin-fill",
+        isMenuCollapsed: false,
+        roles:["superadmin"],
+      badge: {
+            variant: "danger",
+            text: "menuitems.ecommerce.badge"
+        },
+        subItems: [
+            {
+                id: 40,
+                label: "menuitems.ecommerce.point_management.pointbanks.title",
+                link: "/superadmin/pointbanks",
+                icon: "ri-coin-fill text-danger"
+            },
+            {
+                id: 41,
+                label: "menuitems.ecommerce.point_management.point_history.title",
+                link: "/superadmin/points",
+                icon: "ri-coin-fill text-warning"
+            },
+        ]
     },
     {
         id: 8,
@@ -52,23 +77,11 @@
         subItems: [
             {
                 id: 80,
-                label: "menuitems.ecommerce.pointbanks.text",
-                link: "/superadmin/pointbanks",
-                icon: "ri-coin-fill text-danger"
-            },
-            {
-                id: 81,
-                label: "menuitems.ecommerce.points.text",
-                link: "/superadmin/points",
-                icon: "ri-coin-fill text-warning"
-            },
-            {
-                id: 82,
                 label: "menuitems.ecommerce.orders.text",
                 link: "/superadmin/orders"
             },
             {
-                id: 83,
+                id: 81,
                 label: "menuitems.ecommerce.vendor_orders.text",
                 link: "/superadmin/orders/vendor_orderlist"
             },

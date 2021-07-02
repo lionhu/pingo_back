@@ -449,9 +449,7 @@ export default {
                     </template>
                   </el-table-column>
                   <el-table-column
-                    label="OrderItem"
-                    align="right"
-                    sortable
+                    align="center"
                     prop="is_valid">
                     <template slot-scope="scope">
                       <a href="javascript:void(0);" @click="updateMargin_valid(scope.row.id, false)"

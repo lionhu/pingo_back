@@ -162,7 +162,7 @@
         "user_self": "本人",
         "affiliator": "アフリエイト",
         "move_user": "会員移動",
-        "selected_user":"選択したユーザー"
+        "selected_user": "選択したユーザー"
       },
       "follower": {
         "title": "フォロワー",
@@ -201,7 +201,7 @@
         "text": "ベンダー注文"
       },
       "points": {
-        "text": "未承認ポイント",
+        "text": "ポイント履歴",
         "type": {
           "OrderBonus": "購入取得ボーナス",
           "DesendentOrderPoint": "製品紹介購入",
@@ -214,6 +214,15 @@
       },
       "pointbanks": {
         "text": "承認済みポイント"
+      },
+      "point_management": {
+        "title": "ポイント管理",
+        "pointbanks": {
+          "title": "承認済みポイント"
+        },
+        "point_history": {
+          "title": "ポイント履歴"
+        }
       }
     },
     "calendar": {
