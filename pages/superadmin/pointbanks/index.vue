@@ -69,10 +69,6 @@ export default {
     this.load_expiredPointbanks();
   },
   methods: {
-    week_before() {
-      var dt = new Date();
-      return new Date(dt.setDate(dt.getDate() - 7)).toISOString();
-    },
     year_after() {
       var dt = new Date();
       return new Date(dt.setDate(dt.getDate() + 365)).toISOString();
@@ -277,19 +273,6 @@ export default {
                             <span>({{ scope.row.created_at | short_date }})</span>
                           </template>
                         </el-table-column>
-
-                        <!--                        <el-table-column-->
-                        <!--                          show-overflow-tooltip>-->
-                        <!--                          <template slot-scope="scope">-->
-                        <!--                            <ul class="list-inline table-action m-0">-->
-                        <!--                              <li class="list-inline-item">-->
-                        <!--                                <a href="javascript:void(0);" class="action-icon"-->
-                        <!--                                   @click="removeVendorInfo(scope.row.id)">-->
-                        <!--                                  <i class="fe-trash-2"></i></a>-->
-                        <!--                              </li>-->
-                        <!--                            </ul>-->
-                        <!--                          </template>-->
-                        <!--                        </el-table-column>-->
                       </el-table>
 
                     </div>
