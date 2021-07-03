@@ -18,11 +18,18 @@ export default {
   },
   computed: {
     ...mapGetters({}),
+    nDays_before() {
+      if (this.nDays > 0) {
+        var dt = new Date();
+        return new Date(dt.setDate(dt.getDate() - this.nDays)).toISOString();
+      }
+      return ""
+    },
   },
   data() {
     return {
       isLoading: false,
-      loading:false,
+      loading: false,
       marginlist_toBeApproved: [],
       multipleSelection_toBeApproved: [],
       nDays: 30,
@@ -31,8 +38,9 @@ export default {
       filters: {
         is_valid: false,
         is_refound: 1,
+        type: "ALL",
         pointbank_saved: false,
-        user_id: "name"
+        user_id: ""
       }
     };
   },
@@ -44,19 +52,24 @@ export default {
       let vm = this;
       this.isLoading = true;
       vm.marginlist_toBeApproved = [];
-      if (this.filters.user_id==="name"){
-        delete  this.filters.user_id;
-      }else{
-        this.filters.user_id=parseInt(this.filters.user_id)
+      if (this.filters.user_id === "") {
+        delete this.filters.user_id;
+      } else {
+        this.filters.user_id = parseInt(this.filters.user_id)
       }
-      axios.$post("/back/store/api/margins/list_toApprovedList/", {
-        nDays:parseInt(this.nDays),
+      if (this.nDays_before !== "") {
+        this.filters.created_at__lte = this.nDays_before
+      }
+      console.log(this.filters)
+      axios.$post("/back/store/api/margins/list_filters/", {
+        // nDays: parseInt(this.nDays),
         filters: this.filters
       }).then((response) => {
         console.log(response.data)
         if (response.result) {
           vm.marginlist_toBeApproved = response.data.margins;
         }
+        this.filters.user_id = ""
       })
       this.isLoading = false;
     },
@@ -182,7 +195,7 @@ export default {
     querySearchUser(query) {
       let vm = this;
       vm.userlist = [];
-      if (query!=="name") {
+      if (query !== "") {
         this.loading = true;
         axios.$post("/apiauth/login/filter_users/", {keystr: query})
           .then((response) => {
@@ -197,9 +210,10 @@ export default {
     },
     ResetUserSearch() {
       this.filters.user_id = "";
+      this.selectUser=null;
     },
     handleSelectUser() {
-      if (this.filters.user_id) {
+      if (this.filters.user_id !== "") {
         let userIndex = this.userlist.findIndex(user => user.id === this.filters.user_id)
         if (userIndex > -1) {
           this.selectUser = this.userlist[userIndex]
@@ -253,7 +267,9 @@ export default {
               <div class="col-sm-6 ">
                 <b-button variant="success" v-bind:disabled="isLoading" class="btn-rounded ml-1"
                           @click="load_margins_toApproved">
-                  <b-spinner small v-if="isLoading"></b-spinner>&nbsp;&nbsp;Load Data
+                  <b-spinner small v-if="isLoading"></b-spinner>
+                  Load Data
+                  <span v-if="selectUser!==null">(User: {{selectUser.username}})</span>
                 </b-button>
               </div>
               <div class="col-md-6 text-right">

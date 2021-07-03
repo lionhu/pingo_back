@@ -163,9 +163,9 @@ export default {
     <PageHeader :title="title" :items="items"/>
 
     <b-tabs justified pills class="navtab-bg" content-class="mt-3" @activate-tab="ChangeTab">
-      <b-tab title="失効ポイント" v-if="expired_pointbanks.length">
+      <b-tab title="失効ポイント">
         <template #title>
-          <b-spinner type="grow" small class="mr-3 text-danger"></b-spinner>
+          <b-spinner type="grow" small class="mr-3 text-danger"  v-if="expired_pointbanks.length"></b-spinner>
           <strong>失効ポイント</strong>
         </template>
         <div class="card">

@@ -28,7 +28,7 @@ export default {
       margin_filters: {
         created_at__gte: this.week_before(),
         created_at__lte: new Date().toISOString(),
-        type: "",
+        type: "ALL",
         user_id: ""
       },
       multipleSelection: [],
@@ -58,6 +58,7 @@ export default {
     },
     ResetUserSearch() {
       this.margin_filters.user_id = "";
+      this.selectUser=null;
     },
     handleSelectUser() {
       if (this.margin_filters.user_id) {
@@ -294,6 +295,8 @@ export default {
                 <b-button variant="success" v-bind:disabled="isLoading" class="btn-rounded ml-1"
                           @click="load_margins">
                   <b-spinner small v-if="isLoading"></b-spinner>&nbsp;&nbsp;Load Data
+                  <span v-if="selectUser!==null">(User: {{selectUser.username}})</span>
+
                 </b-button>
               </div>
               <div class="col-sm-6 text-right">
