@@ -13,6 +13,7 @@ export default {
     return {
       email: "huhaiguang@me.com",
       password: "lionhu",
+      role: "client_admin",
       submitted: false,
       authError: null,
       tryingToLogIn: false,
@@ -27,14 +28,15 @@ export default {
       return this.$store && this.$store.state.notification ? 5 : 0;
     },
   },
-  created() {
-  },
   validations: {
     email: {
       required,
       email
     },
     password: {
+      required
+    },
+    role: {
       required
     },
   },
@@ -49,14 +51,17 @@ export default {
       } else {
         const {
           email,
-          password
+          password,
+          role
         } = this;
         if (email && password) {
           this.$store.dispatch('auth/login', {
             email,
-            password
+            password,
+            role
           }).then((user) => {
-            if (user.role !== undefined && user.role !== "") {
+            console.log("try Login ", user)
+            if (user !== undefined && user.role !== "") {
               this.$router.push(
                 this.$route.query.redirectFrom || {
                   path: `/${user.role}/`
@@ -130,6 +135,19 @@ export default {
       </div>
 
       <div class="form-group mb-3">
+        <label for="role">Role</label>
+        <div class="input-group input-group-merge">
+          <select id="role" class="custom-select" v-model="role">
+            <option selected value="client_admin">Client Admin</option>
+            <option value="client_superadmin">Sales Represent</option>
+            <option value="vendor">Vendor</option>
+            <option value="staff">Staff</option>
+            <option value="superadmin">Admin</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="form-group mb-3">
         <div class="custom-control custom-checkbox">
           <input type="checkbox" class="custom-control-input" id="checkbox-signin" checked>
           <label class="custom-control-label" for="checkbox-signin">Remember me</label>
@@ -145,9 +163,9 @@ export default {
     <footer class="footer footer-alt">
       <p class="text-muted">
         Don't have an account?
-        <nuxt-link to="/account/register" class="text-primary ml-1">
+        <a href="https://www.pingo.jp/page/account/register" class="text-primary ml-1">
           <b>Sign Up</b>
-        </nuxt-link>
+        </a>
       </p>
     </footer>
 

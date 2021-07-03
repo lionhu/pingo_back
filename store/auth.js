@@ -10,10 +10,10 @@ export const state = () => {
 export const actions = {
   // Logs in the user.
   // eslint-disable-next-line no-unused-vars
-  login({dispatch, commit}, {email, password}) {
+  login({dispatch, commit}, {email, password,role}) {
     commit('loginRequest', {email});
     return new Promise(resolve => {
-      userService.login(email, password)
+      userService.login(email, password,role)
         .then(
           user => {
             commit('loginSuccess', user);

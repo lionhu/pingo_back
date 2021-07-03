@@ -225,6 +225,11 @@
         }
       }
     },
+    "product": {
+      "text": "製品管理",
+      "regular": "紹介販売製品",
+      "pingo": "共同購入製品"
+    },
     "calendar": {
       "text": "Calendar"
     },

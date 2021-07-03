@@ -65,6 +65,29 @@
         ]
     },
     {
+        id: 5,
+        label: "menuitems.product.text",
+        icon: "ri-dashboard-fill",
+        badge: {
+            variant: "danger",
+            text: "menuitems.ecommerce.badge"
+        },
+        isMenuCollapsed: false,
+        roles:["superadmin"],
+        subItems: [
+            {
+                id: 51,
+                label: "menuitems.product.regular",
+                link: "/superadmin/products"
+            },
+            {
+                id: 52,
+                label: "menuitems.product.pingo",
+                link: "/superadmin/products"
+            },
+        ]
+    },
+    {
         id: 8,
         label: "menuitems.ecommerce.text",
         icon: "fe-shopping-cart",

@@ -25,8 +25,8 @@ function validateToken() {
   return false;
 }
 
-function login(email, password) {
-  return axios.$post(`/apiauth/login/back_login/`, {email, password})
+function login(email, password,role) {
+  return axios.$post(`/apiauth/login/back_login/`, {email, password,role})
     .then(handleResponse)
     .then(user => {
       console.log(user)
