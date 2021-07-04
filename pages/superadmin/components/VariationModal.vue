@@ -76,30 +76,30 @@ export default {
            v-if="showVariationModal"
   >
     <form @submit.prevent="updateProductVariationInformation">
-      <div class="row mt-md-2">
+<!--      <div class="row mt-md-2">-->
 
-        <div class="col-md-4">
-          <label class="mb-2">Type<span class="text-danger">*</span></label>
-        </div>
-        <div class="col-md-4">
-          <div class="form-group">
-            <div class="radio form-check-inline ml-md-2">
-              <input type="radio" v-model="edit_variation.variation_type" id="variation_type_Radio1" value="REGULAR"
-                     name="radioInline" checked/>
-              <label for="variation_type_Radio1">REGULAR</label>
-            </div>
-          </div>
-        </div>
-        <div class="col-md-4">
-          <div class="form-group">
-            <div class="radio form-check-inline">
-              <input type="radio" v-model="edit_variation.variation_type" id="variation_type_Radio2" value="PINGO"
-                     name="radioInline"/>
-              <label for="variation_type_Radio2">PINGO</label>
-            </div>
-          </div>
-        </div>
-      </div>
+<!--        <div class="col-md-4">-->
+<!--          <label class="mb-2">Type<span class="text-danger">*</span></label>-->
+<!--        </div>-->
+<!--        <div class="col-md-4">-->
+<!--          <div class="form-group">-->
+<!--            <div class="radio form-check-inline ml-md-2">-->
+<!--              <input type="radio" v-model="edit_variation.variation_type" id="variation_type_Radio1" value="REGULAR"-->
+<!--                     name="radioInline" checked/>-->
+<!--              <label for="variation_type_Radio1">REGULAR</label>-->
+<!--            </div>-->
+<!--          </div>-->
+<!--        </div>-->
+<!--        <div class="col-md-4">-->
+<!--          <div class="form-group">-->
+<!--            <div class="radio form-check-inline">-->
+<!--              <input type="radio" v-model="edit_variation.variation_type" id="variation_type_Radio2" value="PINGO"-->
+<!--                     name="radioInline"/>-->
+<!--              <label for="variation_type_Radio2">PINGO</label>-->
+<!--            </div>-->
+<!--          </div>-->
+<!--        </div>-->
+<!--      </div>-->
       <div class="row mt-md-2">
         <div class="col-md-6">
           <div class="form-group">

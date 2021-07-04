@@ -34,6 +34,7 @@ function getCategoryProducts(options) {
 }
 
 function updateInfo(info) {
+  console.log("updateInfo",info)
   if (info.id) {
     let url = `${urls.update}${info.id}/`
     return axios.$put(url, info)

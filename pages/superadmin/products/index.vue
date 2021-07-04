@@ -49,7 +49,8 @@ export default {
     "el-option": () => import('element-ui/lib/option'),
     "el-cascader": () => import('element-ui/lib/cascader'),
     "el-form": () => import('element-ui/lib/form'),
-    Category: () => import('../components/CategoryModal')
+    Category: () => import('../components/CategoryModal'),
+    QuickEditProduct: () => import('./components/QuickEditProduct'),
 
   },
   data() {
@@ -78,7 +79,8 @@ export default {
         label: "title",
         value: "id"
       },
-      edit_category: false
+      edit_category: false,
+      showQuieckEditProductModal: false,
     };
   },
   computed: {
@@ -90,82 +92,14 @@ export default {
       backend_server: state => state.system.backend_server
     }),
   },
-  mounted() {
-  },
   methods: {
     getImageUrl(path) {
       return this.backend_server + path
     },
-    handleSelect_category(item) {
-      this.product.category.id = item.id;
-    },
-    querySearchAsync_category(queryString, cb) {
-      this.product.category = {id: 0, title: ""};
-      let url = `/back/store/api/categories/backend_list/?search=${queryString}`
-      this.$axios.post(url).then((response) => {
-        if (response.data.result && response.data.categories) {
-          var selectlist = response.data.categories.map(function (category) {
-            return {id: category.id, value: category.title}
-          })
-          cb(selectlist)
-        }
-      })
-    },
-    handleVendorChange(value) {
-      console.log(value);
-    },
-    handleSelect_product(item) {
-      this.searchproduct = item;
-    },
-    querySearchAsync_product(queryString, cb) {
-      this.searchproduct = {};
-      this.search_results = [];
-      var vm = this;
-      let url = `/back/store/api/products/backend_list/?search=${queryString}`
-      this.$axios.post(url).then((response) => {
-        if (response.data.result && response.data.data.results) {
-          var selectlist = response.data.data.results.map(function (product) {
-            return {id: product.id, value: product.item_name}
-          })
-          vm.search_results = response.data.data.results;
-          cb(selectlist)
-        }
-      })
-    },
-    updateProductInformation() {
-      let vm = this;
-      this.product.vendor_id = this.product.vendor.id
-      this.product.category_id = this.product.category.id
-      this.product.pingo_targetNum = parseInt(this.product.pingo_targetNum)
-      this.product.pingo_currentNum = parseInt(this.product.pingo_currentNum)
-      console.log(this.product)
-      this.$store.dispatch("products/update_productinfo", this.product)
-        .then((res_product) => {
-          console.log(res_product)
-          let index = vm.productlist.findIndex(product => product.id === res_product.id);
-          if (index > -1) {
-            vm.productlist.splice(index, 1, res_product);
-            swalService.showToast("success", "Updated successfully!")
-          }
-        })
-      this.$bvModal.hide("modal-product")
-      this.product = empty_product;
-    },
     editProduct(product) {
       console.log(product)
-      this.product = empty_product;
-      this.product.id = product.id;
-      this.product.is_valid = product.is_valid;
-      this.product.type = product.type;
-      this.product.pingo_until_at = product.pingo_until_at;
-      this.product.pingo_targetNum = product.pingo_targetNum;
-      this.product.pingo_currentNum = product.pingo_currentNum;
-      this.product.item_name = product.item_name;
-      this.product.rate = product.rate;
-      this.product.vendor.id = product.vendor.id;
-      this.product.category.id = product.category.id;
-      this.product.category.title = product.category.title;
-      this.$bvModal.show("modal-product")
+      this.product = product;
+      this.showQuieckEditProductModal = true;
     },
     deleteProduct(product_id) {
       console.log(product_id)
@@ -225,11 +159,19 @@ export default {
           }
         })
     },
-    handleCategoryChange(values) {
-      this.product.category.id = values[values.length - 1];
-    },
-    switchProductType(varType) {
-      this.product.type = varType;
+    QuickEditProductResult(info) {
+      console.log("QuickEditProductResult", info)
+      if (info.result) {
+        let index = this.productlist.findIndex(product => product.id === info.product.id);
+        if (index > -1) {
+          if (info.product.category.id === this.productlist[0].category.id) {
+            this.productlist.splice(index, 1, info.product);
+          } else {
+            this.productlist.splice(index, 1)
+          }
+        }
+      }
+      this.showQuieckEditProductModal = false;
     }
   },
   middleware: ['router-auth', 'router-superadmin'],
@@ -332,7 +274,8 @@ export default {
                       {{ scope.row.item_name }}(#{{ scope.row.id }})
                     </h5>
                     <h6>
-                      <a href="javascript:void(0);" @click="editProduct(scope.row)" class="action-icon">
+                      <a href="javascript:void(0);" v-b-modal:modal-quick-editproduct
+                         @click="editProduct(scope.row)" class="action-icon">
                         <b-badge variant="primary" pill v-if="scope.row.type==='REGULAR'">REGULAR</b-badge>
                         <b-badge variant="warning" pill v-else>Pingo</b-badge>
                         <i class="mdi mdi-square-edit-outline"></i>
@@ -395,130 +338,7 @@ export default {
         </div>
       </div>
     </div>
-    <b-modal id="modal-product" scrollable title="Edit Product Information" title-class="font-18"
-             body-class="p-4" hide-footer>
-      <form @submit.prevent="updateProductInformation">
-        <div class="row mb-3">
-          <div class="col-md-6">
-              <label for="field-sort_by" class="control-label">Sort ID:
-                <span class="text-danger">*</span>
-              </label>
-              <input type="number" id="field-sort_by" v-model="product.sort_by" class="form-control"
-                     :class="{ 'is-invalid': submitted && $v.product.sort_by.$error }"
-                     :placeholder="product.sort_by"/>
-          </div>
-        </div>
-<!--        <div class="row">-->
-<!--          <div class="col-md-6">-->
-<!--            <b-form-group id="field-type_regular">-->
-<!--              <b-form-radio v-model="product.type" name="some-radios" value="REGULAR"-->
-<!--                            @change="switchProductType('REGULAR')">REGULAR-->
-<!--              </b-form-radio>-->
-<!--            </b-form-group>-->
-<!--          </div>-->
-<!--          <div class="col-md-6" id="field-type_pingo">-->
-<!--            <b-form-group>-->
-<!--              <b-form-radio v-model="product.type" name="some-radios" value="PINGO"-->
-<!--                            @change="switchProductType('PINGO')">PINGO-->
-<!--              </b-form-radio>-->
-<!--            </b-form-group>-->
-<!--          </div>-->
-<!--        </div>-->
-<!--        <div class="row" v-if="product.type==='PINGO'">-->
-<!--          <div class="col-md-4">-->
-<!--            <div class="form-group">-->
-<!--              <label for="field-targetNum" class="control-label">TargetNum-->
-<!--                <span class="text-danger">*</span>-->
-<!--              </label>-->
-<!--              <input type="number" id="field-targetNum" v-model="product.pingo_targetNum" class="form-control"-->
-<!--                     :placeholder="product.pingo_targetNum"/>-->
-<!--            </div>-->
-<!--          </div>-->
-<!--          <div class="col-md-4">-->
-<!--            <div class="form-group">-->
-<!--              <label for="field-currentNum" class="control-label">CurrentNum-->
-<!--                <span class="text-danger">*</span>-->
-<!--              </label>-->
-<!--              <input type="number" id="field-currentNum" v-model="product.pingo_currentNum" class="form-control"-->
-<!--                     :placeholder="product.pingo_currentNum"/>-->
-<!--            </div>-->
-<!--          </div>-->
-<!--          <div class="col-md-4">-->
-<!--            <div class="form-group">-->
-<!--              <label id="fromDate_picker_label">-->
-<!--                Until At:-->
-<!--                <span class="text-danger">*</span>-->
-<!--              </label>-->
-<!--              <el-date-picker-->
-<!--                id="fromDate_picker"-->
-<!--                v-model="product.pingo_until_at"-->
-<!--                align="right"-->
-<!--                type="date"-->
-<!--                placeholder="開始日選択">-->
-<!--              </el-date-picker>-->
-<!--            </div>-->
-<!--          </div>-->
-<!--        </div>-->
-        <div class="row">
-          <div class="col-md-6">
-            <b-form-group id="field-is_valid" label-cols="4" label-cols-lg="4" label-size="sm" label="Active">
-              <switches v-model="product.is_valid" id="field-is_valid" type-bold="false" color="warning"
-                        class="ml-1 my-auto"></switches>
-            </b-form-group>
-          </div>
-          <div class="col-md-6">
-            <b-form-group id="field-rate" label-cols="4" label-cols-lg="4" label-size="sm" label="Rate">
-              <el-rate v-model="product.rate"></el-rate>
-            </b-form-group>
-          </div>
-        </div>
-        <div class="row">
-          <div class="col-md-12">
-            <div class="form-group">
-              <label for="field-item_name" class="control-label">Name
-                <span class="text-danger">*</span>
-              </label>
-              <input type="text" id="field-item_name" v-model="product.item_name" class="form-control"
-                     :class="{ 'is-invalid': submitted && $v.product.item_name.$error }"
-                     :placeholder="product.item_name"/>
-
-              <div v-if="submitted && !$v.product.item_name.required" class="invalid-feedback">This value is required.
-              </div>
-            </div>
-          </div>
-        </div>
-        <div class="row">
-          <div class="col-md-6">
-            <div class="form-group">
-              <label class="control-label">Vendor<span class="text-danger">*</span></label>
-              <el-select v-model="product.vendor.id" placeholder="请选择">
-                <el-option
-                  v-for="item in vendorlist"
-                  :key="item.id"
-                  :label="item.name"
-                  :value="item.id">
-                </el-option>
-              </el-select>
-
-
-            </div>
-          </div>
-          <div class="col-md-6">
-            <label class="control-label">Category<span class="text-danger">*</span></label>
-            <el-cascader
-              :options="categorylist.children"
-              :props="dropdown_props"
-              @change="handleCategoryChange"></el-cascader>
-          </div>
-        </div>
-        <div class="form-group row">
-          <div class="col-8 offset-4">
-            <button type="submit" class="btn btn-primary">Submit</button>
-            <!--            <button type="reset" class="btn btn-secondary m-l-5 ml-1">Cancel</button>-->
-          </div>
-        </div>
-      </form>
-
-    </b-modal>
+    <QuickEditProduct :product="product" mode="edit" :showModal="showQuieckEditProductModal"
+                      @updateResult="QuickEditProductResult"/>
   </div>
 </template>

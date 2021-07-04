@@ -19,7 +19,7 @@ export default {
         purchase_price: 0,
         name: "",
         description: "",
-        variation_type: "",
+        variation_type: "REGULAR",
         inventory: 0,
         sort_by:0,
         point_rule: {
@@ -127,8 +127,6 @@ export default {
 };
 </script>
 <template>
-  <div class="row">
-    <div class="col-lg-12">
       <div class="card">
         <div class="card-body">
           <div class="row">
@@ -275,6 +273,5 @@ export default {
           </div>
         </div>
       </div>
-    </div>
-  </div>
+
 </template>

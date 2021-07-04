@@ -177,7 +177,7 @@ export default {
         >
           <template slot="button-content" class="nav-link dropdown-toggle">
             <div class="nav-user mr-0">
-              <img src="~/assets/images/users/avatar-1.jpg" alt="user-image" class="rounded-circle"/>
+              <img :src="ME.avatar" alt="user-image" class="rounded-circle"/>
               <span class="pro-user-name ml-1">
                             {{ ME ? ME.username : '' }}
                             <i class="mdi mdi-chevron-down"></i>
