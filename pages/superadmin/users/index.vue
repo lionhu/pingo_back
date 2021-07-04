@@ -1,3 +1,4 @@
+<script src="../../../store/vendors.js"></script>
 <script>
 import {mapState} from "vuex"
 import {swalService} from "../../../helpers/fakebackend/swal.service"
@@ -21,6 +22,7 @@ export default {
     "el-table-column": () => import('element-ui/lib/table-column'),
     "el-input": () => import('element-ui/lib/input'),
     "el-tree": () => import('element-ui/lib/tree'),
+    "UserRoleSelector": () => import('../components/UserRoleSelector'),
   },
   data() {
     return {
@@ -45,6 +47,7 @@ export default {
         username: "",
         id: 0
       },
+      edit_user: {},
       childrenlist: [],
       props: {
         label: 'username',
@@ -53,7 +56,8 @@ export default {
         followers: 'get_descendants_count',
         user_id: 0
       },
-      targetNodes: []
+      targetNodes: [],
+      showRoleEditModal: false
     };
   },
   computed: {
@@ -94,38 +98,17 @@ export default {
         this.load_users_list(url)
       }
     },
-    async changeUserRole(user) {
-      if (user.role !== "superadmin" && user.role !== "client_admin" && user.role !== "client_superadmin") {
-        let vm = this;
-        const selectOptions = {
-          // 'vendor': 'Vendor',
-          // 'client_superadmin': 'CSA',
-          // 'client_admin': 'CA',
-          'member': 'Member',
-          "staff": "Staff"
-        };
-        const {value: role} = await Swal.fire({
-          title: 'Select Role',
-          input: 'radio',
-          inputOptions: selectOptions,
-          inputValue: user.role !== undefined ? user.role : "None",
-          inputValidator: (value) => {
-            if (!value) {
-              return 'You need to choose something!'
-            }
-          }
-        })
-        if (role && user.role !== role) {
-          this.$store.dispatch("users/set_User_Role", {
-            user_id: user.user_id,
-            role: role
-          }).then((response) => {
-            console.log("update user role", response)
-            vm.refreshChildrenList(response, role)
-            swalService.showModal('Change Role', 'Role has been changed', 'success')
-          })
-        }
+    closeRoleEditorModal({result, user}) {
+      this.showRoleEditModal = false;
+      if (result) {
+        this.refreshChildrenList(user);
+        swalService.showModal('Change Role', 'Role has been changed', 'success')
       }
+    },
+    changeUserRole(user) {
+      console.log("changeUserRole", user)
+      this.edit_user = user;
+      this.showRoleEditModal = true;
     },
     async setUserTransferPoint(profile) {
       console.log(profile)
@@ -150,7 +133,7 @@ export default {
 
     },
     updateUserProfileInformation(user_id, info) {
-      let vm=this;
+      let vm = this;
       this.$store.dispatch("users/update_user_profile_information", {
         user_id: user_id,
         info: info
@@ -161,7 +144,7 @@ export default {
       })
     },
     refreshChildrenList_canTransferPoint(child_id, canTransferPoint) {
-      console.log("child_id, canTransferPoint",child_id,typeof(child_id), canTransferPoint)
+      console.log("child_id, canTransferPoint", child_id, typeof (child_id), canTransferPoint)
       console.log(" this.childrenlist", this.childrenlist)
 
       var index = this.childrenlist.findIndex(child => child.user_id === parseInt(child_id))
@@ -170,12 +153,11 @@ export default {
         this.childrenlist[index].can_transfer_point = canTransferPoint;
       }
     },
-    refreshChildrenList(child_id, role) {
-      console.log(child_id, role)
-      var index = this.childrenlist.findIndex(child => child.user_id === child_id)
+    refreshChildrenList(user) {
+      var index = this.childrenlist.findIndex(child => child.user_id === user.id)
       console.log(index)
       if (index > -1) {
-        this.childrenlist[index].role = role;
+        this.childrenlist.splice(index, 1, user);
       }
     },
     onFiltered(filteredItems) {
@@ -237,7 +219,7 @@ export default {
               console.log(index)
               if (index > -1) {
                 vm.childrenlist.splice(index, 1)
-                Swal.fire("Success","success","User removed successfully! Please Refresh Page")
+                Swal.fire("Success", "success", "User removed successfully! Please Refresh Page")
               }
             }
           });
@@ -378,9 +360,11 @@ export default {
       <div class="col-md-6 col-xs-12" v-if="user_selected">
         <div class="card">
           <div class="card-body">
-            <h6>{{$t("menuitems.organizations.user.selected_user")}}:{{ user.username }}</h6>
+            <h6>{{ $t("menuitems.organizations.user.selected_user") }}:{{ user.username }}</h6>
             <div class="d-flex justify-content-between">
-              <b-button variant="primary" @click="user_moveto(user.id,user.username)">{{$t("menuitems.organizations.user.move_user")}}</b-button>
+              <b-button variant="primary" @click="user_moveto(user.id,user.username)">
+                {{ $t("menuitems.organizations.user.move_user") }}
+              </b-button>
             </div>
           </div>
         </div>
@@ -427,7 +411,11 @@ export default {
 
                 <el-table-column type="expand">
                   <template slot-scope="props">
-                    <h4>User ID: {{props.row.user_id}}</h4>
+                    <h6>User ID: {{ props.row.user_id }}</h6>
+                    <h6>Email: {{ props.row.email }}</h6>
+                    <ul>
+                      <li v-for="role in props.row.roles" :key="role">{{ role }}</li>
+                    </ul>
                   </template>
                 </el-table-column>
                 <el-table-column
@@ -445,23 +433,9 @@ export default {
                   sortable
                   label="Role">
                   <template slot-scope="scope">
-                    <button type="button" class="btn btn-rounded ml-1" :class='{
-                      "btn-danger":scope.row.role==="superadmin",
-                      "btn-primary":scope.row.role==="member",
-                      "btn-danger":scope.row.role==="client_superadmin",
-                      "btn-warning":scope.row.role==="client_admin",
-                      "btn-purple":scope.row.role==="vendor",
-                      "btn-success":scope.row.role==="staff",
-                      "btn-secondary":scope.row.role===undefined,
-                    }' @click="changeUserRole(scope.row)">
-                      <i class='fas fa-user-graduate' v-if='scope.row.role==="superadmin"'></i>
-                      <i class="ri-alarm-warning-fill" v-if="scope.row.role==='client_superadmin'"></i>
-                      <i class='fe-user text-white' v-if='scope.row.role==="member"'></i>
-                      <i class='fe-user text-white' v-if='scope.row.role==="staff"'></i>
-                      <i class=' ri-home-smile-fill text-white' v-if='scope.row.role==="client_admin"'></i>
-                      <i class='ri-hospital-fill text-white' v-if='scope.row.role==="vendor"'></i>
-                      <span v-if='scope.row.role===undefined' class="text-white">N/G</span>
-                    </button>
+                    <b-button variant="primary" @click="changeUserRole(scope.row)" v-b-modal:modal-user-roles-selector>
+                      <i class='fe-user text-white'></i>
+                    </b-button>
                   </template>
                 </el-table-column>
                 <el-table-column
@@ -470,7 +444,7 @@ export default {
                   label="ポイント転送">
                   <template slot-scope="scope">
                     <button type="button" class="btn btn-rounded ml-1" @click="setUserTransferPoint(scope.row)"
-                      v-bind:class="{'btn-success':scope.row.can_transfer_point,'btn-danger':!scope.row.can_transfer_point}">
+                            v-bind:class="{'btn-success':scope.row.can_transfer_point,'btn-danger':!scope.row.can_transfer_point}">
                       <i class="fe-refresh-cw"></i>
                     </button>
                   </template>
@@ -482,10 +456,6 @@ export default {
                   <template slot-scope="scope">
                     {{ scope.row.get_descendants_count }}
                   </template>
-                </el-table-column>
-                <el-table-column
-                  label="email">
-                  <template slot-scope="scope">{{ scope.row.email }}</template>
                 </el-table-column>
                 <el-table-column
                   label="status"
@@ -517,7 +487,8 @@ export default {
                           <i class="mdi mdi-square-edit-outline"></i></a>
                       </li>
                       <li class="list-inline-item">
-                        <a href="javascript:void(0);" class="action-icon" @click="remove_user(scope.row.user_id,scope.row.username)"
+                        <a href="javascript:void(0);" class="action-icon"
+                           @click="remove_user(scope.row.user_id,scope.row.username)"
                            v-if="scope.row.username!=='wavus'">
                           <i class="fe-trash-2"></i></a>
                       </li>
@@ -531,5 +502,6 @@ export default {
         </div>
       </div>
     </div>
+    <UserRoleSelector :user="edit_user" @closeModal="closeRoleEditorModal" :showModal="showRoleEditModal"/>
   </div>
 </template>

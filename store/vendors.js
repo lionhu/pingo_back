@@ -19,7 +19,7 @@ export const actions = {
       console.log(res)
       if (res.id) {
         console.log(res)
-        commit("updateVendor", res)
+        // commit("updateVendor", res)
         Swal.fire("Success","Vendor Information Updated","success");
       }
     })

@@ -20,10 +20,10 @@ export const actions = {
       })
     })
   },
-  set_User_Role({commit}, {user_id, role}) {
+  set_User_Role({commit}, {user_id, roles}) {
     return new Promise((resolve, reject) => {
-      userService.setUserRole({user_id, role}).then(res => {
-        resolve(res.id)
+      userService.setUserRole({user_id, roles}).then(res => {
+        resolve(res.user)
       })
     })
   },

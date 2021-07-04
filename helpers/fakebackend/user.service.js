@@ -60,11 +60,9 @@ function getAll(url) {
     });
 }
 
-function setUserRole({user_id, role}) {
+function setUserRole({user_id, roles}) {
   const url = `/apiauth/users/${user_id}/set_user_role/`
-  console.log(url)
-  console.log(role)
-  return axios.$post(url, {user_id, role})
+  return axios.$post(url, {user_id, roles})
     .then(handleResponse)
     .then(response => {
       return response;

@@ -8,6 +8,7 @@ import {
   url
 } from 'vuelidate/lib/validators'
 import ModalVendorEdit from "../components/VendorEditModal"
+import {axios} from '@/plugins/axios.js';
 
 export default {
   name:"vendor_list",
@@ -45,10 +46,6 @@ export default {
       ],
       auto_searching: false,
       autocomplete_address: false,
-      perPage: 5,
-      pageOptions: [5, 10, 25, 50, 100],
-      filter: null,
-      multipleSelection: [],
       searchkey: "",
       mode: "edit",
       vendor: {
@@ -64,42 +61,24 @@ export default {
         website: "",
         admin_id: 0
       },
-      admin: {
-        id: 0,
-        name: ""
-      },
+      vendorlist:[],
       vendor_admin_name: "",
       visible_VendorEdit: false,
       edit_vendor_id: 0,
-      submitted: false
     };
   },
-  computed: {
-    ...mapState({
-      list: state => state.vendors.list
-    }),
-  },
   mounted() {
-    this.load_vendors_list(`?page_size=${this.perPage}`)
-  },
-  watch: {
-    perPage: function (val) {
-      let option = `?page_size=${val}`
-      this.load_vendors_list(option)
-    },
-    filter: function (val) {
-      console.log(val)
-      let url = `http://localhost:8000/apiauth/users/?page=1&page_size=${val}`
-      this.load_vendors_list(url)
-    }
+    this.load_vendors_list()
   },
   methods: {
-    change_vendorlist_page(pagelink) {
-      let url = "?" + pagelink.split("/?")[1];
-      this.load_vendors_list(url)
-    },
-    load_vendors_list(options) {
-      this.$store.dispatch("vendors/load_superadmin_vendorlist", options);
+    load_vendors_list() {
+      let vm=this;
+      axios.get("/back/store/api/vendors/").then(res =>{
+        if(res.data.result){
+          vm.vendorlist=res.data.data.results;
+        }
+      })
+      // this.$store.dispatch("vendors/load_superadmin_vendorlist", options);
     },
     removeVendorInfo(vendor_id) {
       if (vendor_id) {
@@ -126,104 +105,22 @@ export default {
         this.load_vendors_list(option)
       }
     },
-    changeVendorAdmin(vendor) {
-      var newid = 0;
-      var vm = this;
-      const swalWithBootstrapButtons = Swal.mixin({
-        customClass: {
-          confirmButton: 'btn btn-success',
-          cancelButton: 'btn btn-danger'
-        },
-        buttonsStyling: false
-      })
-      Swal.fire({
-        title: 'New Admin ID',
-        input: 'text',
-        inputAttributes: {
-          autocapitalize: 'off'
-        },
-        showCancelButton: true,
-        confirmButtonText: 'Look up',
-        showLoaderOnConfirm: true,
-        preConfirm: (new_admin_id) => {
-          newid = new_admin_id
-          return this.$axios.post(`/apiauth/users/${new_admin_id}/get_username/`)
-            .then(response => {
-              if (!response.data.result) {
-                throw new Error(response.data.message)
-              }
-              return response.data.username
-              // return response.json()
-            }).catch(error => {
-              Swal.showValidationMessage(
-                `Request failed: ${error}`
-              )
-            })
-        },
-        allowOutsideClick: () => !Swal.isLoading()
-      }).then((result) => {
-        console.log(result)
-        if (result.isConfirmed && result.value) {
-          swalWithBootstrapButtons.fire({
-            title: `${result.value}`,
-            text: `Are you sure about this new Admin?`,
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonText: 'Yes, Change it!',
-            cancelButtonText: 'No, cancel!',
-            reverseButtons: true
-          }).then((res) => {
-            if (res.isConfirmed) {
-              vendor.admin_id = newid;
-              console.log(vm.vendor)
-              vm.$store.dispatch("vendors/update_vendor", vendor);
-
-              swalWithBootstrapButtons.fire(
-                'Updated!',
-                'Admin of vendor has been updated.',
-                'success'
-              )
-            } else if (
-              /* Read more about handling dismissals below */
-              res.dismiss === Swal.DismissReason.cancel
-            ) {
-              swalWithBootstrapButtons.fire(
-                'Cancelled',
-                'Your imaginary file is safe :)',
-                'error'
-              )
-            }
-          })
-        }
-      })
-    },
-    onFiltered(filteredItems) {
-      this.totalRows = filteredItems.length;
-      this.currentPage = 1;
-    },
-    toggleSelection(rows) {
-      if (rows) {
-        rows.forEach(row => {
-          this.$refs.multipleTable.toggleRowSelection(row);
-        });
-      } else {
-        this.$refs.multipleTable.clearSelection();
-      }
-    },
-    handleSelectionChange(val) {
-      this.multipleSelection = val;
-      console.log(this.multipleSelection)
-    },
     showVendorModal(vendor_id, mode) {
       this.edit_vendor_id = vendor_id;
       this.mode = mode;
       this.visible_VendorEdit = true;
     },
     closeVendorModal(info) {
-      if (info.result) {
+      if (info.result && info.mode==="edit") {
+        const index=this.vendorlist.findIndex(vendor=>vendor.id ===info.vendor.id)
+        if (index>-1){
+          this.vendorlist.splice(index,1,info.vendor)
+        }
+      }
         this.mode = "";
         this.visible_VendorEdit = false;
-      }
+
+
     }
   },
   middleware: ['router-auth', 'router-superadmin'],
@@ -253,25 +150,7 @@ export default {
         <div class="card">
           <div class="card-body">
             <div class="row mb-2">
-              <div class="col-sm-6">
-              </div>
-              <div class="col-sm-6">
-                <div class="float-sm-right">
-                  <button type="button" class="btn btn-success mb-2 mb-sm-0">
-                    <i class="mdi mdi-cog"></i>
-                  </button>
-                </div>
-              </div>
-              <!-- end col-->
-            </div>
-            <div class="row mb-2">
               <div class="col-sm-12 col-md-6">
-                <div id="tickets-table_length" class="dataTables_length">
-                  <label class="d-inline-flex align-items-center">
-                    Display&nbsp;
-                    <b-form-select v-model="perPage" size="sm" :options="pageOptions"></b-form-select>&nbsp;Customers
-                  </label>
-                </div>
               </div>
               <!-- Search -->
               <div class="col-sm-12 col-md-6">
@@ -292,62 +171,9 @@ export default {
             <div class="table-responsive mb-0">
               <el-table
                 ref="multipleTable"
-                :data="list.results"
+                :data="vendorlist"
                 tooltip-effect="dark"
-                style="width: 100%"
-                @selection-change="handleSelectionChange">
-                <el-table-column
-                  type="selection"
-                  width="55">
-                </el-table-column>
-
-                <el-table-column type="expand">
-                  <template slot-scope="props">
-
-                    <div class="card">
-                      <div class="card-body">
-                        <div class="row" v-if="vendor">
-                          <div class="col-6">
-                            <b-form-group id="fieldset-name" label="Name" label-for="name">
-                              <b-form-input id="name" v-model="vendor.name"></b-form-input>
-                            </b-form-group>
-                            <b-form-group id="fieldset-website" label="Website" label-for="website">
-                              <b-form-input id="website" v-model="vendor.website"></b-form-input>
-                            </b-form-group>
-                            <b-form-group id="fieldset-phone" label="Phone" label-for="phone">
-                              <b-form-input id="phone" v-model="vendor.phone"></b-form-input>
-                            </b-form-group>
-                            <b-form-group id="fieldset-address_2" label="Email" label-for="email">
-                              <b-form-input id="email" v-model="vendor.email" type="email"></b-form-input>
-                            </b-form-group>
-                          </div>
-                          <div class="col-6">
-                            <b-form-group id="fieldset-postcode" label="Address" label-for="postcode">
-                              <b-form-input id="postcode" v-model="vendor.postcode"></b-form-input>
-                            </b-form-group>
-                            <b-form-group id="fieldset-state">
-                              <b-form-input id="state" v-model="vendor.state"></b-form-input>
-                            </b-form-group>
-                            <b-form-group id="fieldset-city">
-                              <b-form-input id="city" v-model="vendor.city"></b-form-input>
-                            </b-form-group>
-                            <b-form-group id="fieldset-town">
-                              <b-form-input id="town" v-model="vendor.town"></b-form-input>
-                            </b-form-group>
-                            <b-form-group id="fieldset-address_1">
-                              <b-form-input id="address_1" v-model="vendor.address_1"></b-form-input>
-                            </b-form-group>
-                            <b-form-group id="fieldset-address_2">
-                              <b-form-input id="address_2" v-model="vendor.address_2"></b-form-input>
-                            </b-form-group>
-                            <b-button variant="primary" @click="updateVendorInfo">Submit</b-button>
-                          </div>
-                        </div>
-                      </div>
-
-                    </div>
-                  </template>
-                </el-table-column>
+                style="width: 100%">
                 <el-table-column prop="id" label="#ID" width="50"></el-table-column>
                 <el-table-column
                   prop="name"
@@ -355,7 +181,7 @@ export default {
                   label="name">
                   <template slot-scope="scope" class="text-center">
                     <h4>{{ scope.row.name }}</h4>
-                    <button class="btn btn-rounded btn-outline-success" @click="changeVendorAdmin(scope.row)">
+                    <button class="btn btn-rounded btn-outline-success">
                       {{ scope.row.admin_name }}
                     </button>
                   </template>
@@ -398,22 +224,6 @@ export default {
                 </el-table-column>
               </el-table>
 
-            </div>
-            <div class="row mt-2">
-              <div class="col">
-                <div class="dataTables_paginate paging_simple_numbers float-right">
-                  <ul class="pagination pagination-rounded">
-                    <!--                    <b-pagination v-model="currentPage" :total-rows="rows" :per-page="perPage" @change="page_changed"></b-pagination>-->
-                  </ul>
-                  <a href="javascript:void(0);" class="btn btn-success"
-                     @click="change_vendorlist_page(list.links.previous)"><i
-                    class="fe-chevron-left"></i></a>
-                  <span class="btn btn-success">{{ list.page }}/{{ list.total_pages }}</span>
-                  <a href="javascript:void(0);" class="btn btn-success"
-                     @click="change_vendorlist_page(list.links.next)"><i
-                    class="fe-chevron-right"></i></a>
-                </div>
-              </div>
             </div>
           </div>
         </div>
