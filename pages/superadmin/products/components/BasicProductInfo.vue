@@ -7,22 +7,12 @@ import {mapState, mapGetters} from "vuex";
 
 export default {
   name:"admin_create_product_basicinfo",
-  props:["mode"],
+  props:["mode","existed_product"],
   mounted() {
-    const param_product = this.$route.params.product;
-    if (param_product !== undefined) {
-      this.product.item_name = param_product.item_name;
-      this.product.type = param_product.type;
-      this.product.rate = param_product.rate;
-      this.product.is_valid = param_product.is_valid;
-      this.product.label = param_product.label;
-      this.product.brand = param_product.brand;
-      this.product.series = param_product.series;
-      this.product.model = param_product.model;
-      this.product.sku = param_product.sku;
-      this.product.video_url = param_product.video_url;
-      this.product.category = param_product.category;
-      this.product.vendor = param_product.vendor;
+    if (this.existed_product!==null){
+      this.product=this.existed_product;
+      this.product.description="";
+      this.product.package="";
     }
   },
   components: {

@@ -117,7 +117,7 @@ export default {
       <div class="row">
         <div class="col-md-6">
           <div class="form-group">
-            <label class="control-label">Vendor<span class="text-danger">*</span></label>
+            <label class="control-label">Vendor - ({{product.vendor.name}})<span class="text-danger">*</span></label>
             <el-select v-model="product.vendor_id" placeholder="请选择">
               <el-option
                 v-for="item in vendorlist"
@@ -131,7 +131,7 @@ export default {
           </div>
         </div>
         <div class="col-md-6">
-          <label class="control-label">Category<span class="text-danger">*</span></label>
+          <label class="control-label">Category - ({{product.category.title}})<span class="text-danger">*</span></label>
           <el-cascader
             :options="categorylist[0].children"
             :props="dropdown_props"

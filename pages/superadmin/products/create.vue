@@ -126,7 +126,7 @@ export default {
 
     <div class="row">
       <div class="col-lg-12">
-        <BasicProductInfo mode="create" @optResult="CreateProductResult"/>
+        <BasicProductInfo mode="create" :existed_product="null" @optResult="CreateProductResult"/>
       </div>
     </div>
 

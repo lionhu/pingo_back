@@ -21,7 +21,7 @@ export default {
         description: "",
         variation_type: "REGULAR",
         inventory: 0,
-        sort_by:0,
+        sort_by: 0,
         point_rule: {
           is_valid: false,
           type: "amount",
@@ -127,151 +127,144 @@ export default {
 };
 </script>
 <template>
-      <div class="card">
-        <div class="card-body">
-          <div class="row">
-            <div class="col-lg-12">
-              <div class="card">
-                <div class="card-body">
-                  <div class="row">
-                    <div class="col-md-6">Available Variations</div>
-                    <div class="col-md-6">
-                      <button class="btn btn-warning mb-2 float-right" v-b-modal.modal_variation_component
-                              @click="switchAddVariationMode"><i
-                        class="mdi mdi-plus-circle mr-1"></i> Add Variation
-                      </button>
-                    </div>
-                  </div>
-                  <div class="row">
-                    <div class="table-responsive">
-                      <table class="table table-bordered table-centered mb-0">
-                        <thead class="thead-light">
-                        <tr>
-                          <th>name</th>
-                          <th>Order</th>
-                          <th>Inventory</th>
-                          <th>price</th>
-                          <th>point_rule</th>
-                          <th></th>
-                        </tr>
-                        </thead>
-                        <tbody>
-                        <tr v-for="variation in variations">
-                          <td class="text-center">
-                            {{ variation.name }} <br>
-                            <b-badge variant="primary" pill v-if="variation.variation_type==='REGULAR'">REGULAR
-                            </b-badge>
-                            <b-badge variant="warning" pill v-else>Pingo</b-badge>
+  <div>
+    <div class="card">
+      <div class="card-body">
+        <div class="row">
+          <div class="col-md-6">Available Variations</div>
+          <div class="col-md-6">
+            <button class="btn btn-warning mb-2 float-right" v-b-modal.modal_variation_component
+                    @click="switchAddVariationMode"><i
+              class="mdi mdi-plus-circle mr-1"></i> Add Variation
+            </button>
+          </div>
+        </div>
+        <div class="row">
+          <div class="table-responsive">
+            <table class="table table-bordered table-centered mb-0">
+              <thead class="thead-light">
+              <tr>
+                <th>name</th>
+                <th>Order</th>
+                <th>Inventory</th>
+                <th>price</th>
+                <th>point_rule</th>
+                <th></th>
+              </tr>
+              </thead>
+              <tbody>
+              <tr v-for="variation in variations">
+                <td class="text-center">
+                  {{ variation.name }} <br>
+                  <b-badge variant="primary" pill v-if="variation.variation_type==='REGULAR'">REGULAR
+                  </b-badge>
+                  <b-badge variant="warning" pill v-else>Pingo</b-badge>
 
-                            <el-upload
-                              class="avatar-uploader"
-                              :action="getUploadVariationimageURL(variation.id)"
-                              :show-file-list="false"
-                              :headers="{'Authorization':csrftoken}"
-                              :on-success="handleVariationImageSuccess"
-                              :before-upload="beforeAvatarUpload">
-                              <img v-if="variation.thumbimage" :src="variation.thumbimage|https_replace_localhost"
-                                   class="avatar">
-                              <i v-else class="el-icon-plus avatar-uploader-icon"></i>
-                            </el-upload>
-                          </td>
-                          <td  class="text-center">
-                            <b-badge variant="danger" pill >{{ variation.sort_by }}</b-badge>
-                          </td>
-                          <td class="text-center">{{ variation.inventory }}</td>
-                          <td class="text-right">
-                            <span class="d-block">{{ variation.price|currency("¥") }}</span>
-                            <span class="d-block">{{ variation.purchase_price|currency("¥") }}</span>
-                          </td>
-                          <td class="text-right">
-                            <h5>
-                              <span class="d-inline-block float-left">Introduction Point</span>
-                              <b-badge variant="success float-right" pill v-if="variation.point_rule.is_valid">on
-                              </b-badge>
-                              <b-badge variant="danger float-right" pill v-else>off</b-badge>
-                            </h5>
-                            <div class="clearfix"></div>
-                            <ul style="list-style-type: none;" v-if="variation.point_rule.is_valid">
-                              <li>
+                  <el-upload
+                    class="avatar-uploader"
+                    :action="getUploadVariationimageURL(variation.id)"
+                    :show-file-list="false"
+                    :headers="{'Authorization':csrftoken}"
+                    :on-success="handleVariationImageSuccess"
+                    :before-upload="beforeAvatarUpload">
+                    <img v-if="variation.thumbimage" :src="variation.thumbimage|https_replace_localhost"
+                         class="avatar">
+                    <i v-else class="el-icon-plus avatar-uploader-icon"></i>
+                  </el-upload>
+                </td>
+                <td class="text-center">
+                  <b-badge variant="danger" pill>{{ variation.sort_by }}</b-badge>
+                </td>
+                <td class="text-center">{{ variation.inventory }}</td>
+                <td class="text-right">
+                  <span class="d-block">{{ variation.price|currency("¥") }}</span>
+                  <span class="d-block">{{ variation.purchase_price|currency("¥") }}</span>
+                </td>
+                <td class="text-right">
+                  <h5>
+                    <span class="d-inline-block float-left">Introduction Point</span>
+                    <b-badge variant="success float-right" pill v-if="variation.point_rule.is_valid">on
+                    </b-badge>
+                    <b-badge variant="danger float-right" pill v-else>off</b-badge>
+                  </h5>
+                  <div class="clearfix"></div>
+                  <ul style="list-style-type: none;" v-if="variation.point_rule.is_valid">
+                    <li>
                           <span
                             class="inline-block text-right mr-3">{{
                               $t("menuitems.organizations.user.client_superadmin")
                             }}:</span>
-                                {{ variation.point_rule.policies.client_superadmin|currency("¥") }}
-                              </li>
-                              <li>
+                      {{ variation.point_rule.policies.client_superadmin|currency("¥") }}
+                    </li>
+                    <li>
                           <span
                             class="inline-block text-right mr-3">{{
                               $t("menuitems.organizations.user.client_admin")
                             }}:</span>
-                                {{ variation.point_rule.policies.client_admin|currency("¥") }}
-                              </li>
-                              <li>
+                      {{ variation.point_rule.policies.client_admin|currency("¥") }}
+                    </li>
+                    <li>
                           <span
                             class="inline-block text-right mr-3">{{
                               $t("menuitems.organizations.user.level_2")
                             }}:</span>{{
-                                  variation.point_rule.policies.level_2|currency("¥")
-                                }}
-                              </li>
-                              <li>
+                        variation.point_rule.policies.level_2|currency("¥")
+                      }}
+                    </li>
+                    <li>
                           <span
                             class="inline-block text-right mr-3">{{
                               $t("menuitems.organizations.user.level_1")
                             }}:</span>{{
-                                  variation.point_rule.policies.level_1|currency("¥")
-                                }}
-                              </li>
-                              <li>
+                        variation.point_rule.policies.level_1|currency("¥")
+                      }}
+                    </li>
+                    <li>
                           <span
                             class="inline-block text-right mr-3">{{
                               $t("menuitems.organizations.user.user_self")
                             }}:</span>{{
-                                  variation.point_rule.policies.user_self|currency("¥")
-                                }}
-                              </li>
-                            </ul>
+                        variation.point_rule.policies.user_self|currency("¥")
+                      }}
+                    </li>
+                  </ul>
 
-                            <h5>
-                              <span class="d-inline-block float-left">Spcial Promotion Bonus</span>
-                              <b-badge variant="success float-right" pill
-                                       v-if="variation.point_rule.special_promotion.is_valid">on
-                              </b-badge>
-                              <b-badge variant="danger float-right" pill v-else>off</b-badge>
-                            </h5>
-                            <div class="clearfix"></div>
-                            <ul style="list-style-type: none;" v-if="variation.point_rule.special_promotion.is_valid">
-                              <li>
+                  <h5>
+                    <span class="d-inline-block float-left">Spcial Promotion Bonus</span>
+                    <b-badge variant="success float-right" pill
+                             v-if="variation.point_rule.special_promotion.is_valid">on
+                    </b-badge>
+                    <b-badge variant="danger float-right" pill v-else>off</b-badge>
+                  </h5>
+                  <div class="clearfix"></div>
+                  <ul style="list-style-type: none;" v-if="variation.point_rule.special_promotion.is_valid">
+                    <li>
                           <span
                             class="inline-block text-right mr-3">{{
                               $t("menuitems.organizations.user.client_superadmin")
                             }}:</span>
-                                {{ variation.point_rule.special_promotion.bonus|currency("¥") }}
-                              </li>
-                            </ul>
-                          </td>
-                          <td class="align-items-center">
-                            <a href="javascript:void(0);" @click="editVariation(variation)"
-                               v-b-modal.modal_variation_component
-                               class="action-icon">
-                              <i class="fe-edit"></i></a>
-                            <a href="javascript:void(0);" @click="deleteVariation(variation.id)" class="action-icon">
-                              <i class="fe-trash"></i></a>
-                          </td>
-                        </tr>
-                        </tbody>
-                      </table>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <VariationModal @operateresult="VariationOperate" :showVariationModal="showVariationModal"
-                            :modeAdd="modeAdd"
-                            :edit_variation="edit_variation" :product_id="product_id"></VariationModal>
+                      {{ variation.point_rule.special_promotion.bonus|currency("¥") }}
+                    </li>
+                  </ul>
+                </td>
+                <td class="align-items-center">
+                  <a href="javascript:void(0);" @click="editVariation(variation)"
+                     v-b-modal.modal_variation_component
+                     class="action-icon">
+                    <i class="fe-edit"></i></a>
+                  <a href="javascript:void(0);" @click="deleteVariation(variation.id)" class="action-icon">
+                    <i class="fe-trash"></i></a>
+                </td>
+              </tr>
+              </tbody>
+            </table>
           </div>
         </div>
       </div>
+    </div>
+    <VariationModal @operateresult="VariationOperate" :showVariationModal="showVariationModal"
+                    :modeAdd="modeAdd"
+                    :edit_variation="edit_variation" :product_id="product_id"></VariationModal>
+  </div>
 
 </template>
