@@ -258,8 +258,7 @@ export default {
                             <table class="table table-centered border table-nowrap mb-lg-0">
                               <thead class="bg-light">
                               <tr>
-                                <th>Product</th>
-                                <th>Quantity</th>
+                                <th class="text-center">Product</th>
                                 <th>Price</th>
                                 <th>Total</th>
                               </tr>
@@ -268,19 +267,18 @@ export default {
                               <tr>
                                 <td>
                                   <div class="media align-items-center">
-                                    <div class="mr-3">
-                                      <img :src="props.row.variant.thumbimage" alt="product-img" height="40"/>
+                                    <div class="mx-3">
+                                      <img :src="props.row.variant.thumbimage" alt="product-img" height="60"/>
                                     </div>
                                     <div class="media-body">
                                       <h6 class="m-0">{{ props.row.item.item_name }}</h6>
                                       <p class="mb-0">
-                                        {{ props.row.variant.name }} <br>
+                                        {{ props.row.variant.name }} X {{props.row.quantity}}<br>
                                         (SKU: {{ props.row.variant.sku }})
                                       </p>
                                     </div>
                                   </div>
                                 </td>
-                                <td>{{ props.row.quantity }}</td>
                                 <td>{{ props.row.variant.purchase_price |currency("¥") }}</td>
                                 <td>{{ props.row.total_purchase_price  |currency("¥") }}</td>
                               </tr>
@@ -397,14 +395,14 @@ export default {
                     {{ scope.row.item.vendor.name }}
                   </template>
                 </el-table-column>
-<!--                <el-table-column-->
-<!--                  label="顧客"-->
-<!--                  sortable-->
-<!--                  prop="json_shippingaddress.name">-->
-<!--                  <template slot-scope="scope">-->
-<!--                    {{ scope.row.json_shippingaddress.name }}-->
-<!--                  </template>-->
-<!--                </el-table-column>-->
+                <el-table-column
+                  label="顧客"
+                  sortable
+                  prop="json_shippingaddress.name">
+                  <template slot-scope="scope">
+                    {{ scope.row.json_shippingaddress.name }}
+                  </template>
+                </el-table-column>
                 <el-table-column
                   label="ユーザー"
                   sortable

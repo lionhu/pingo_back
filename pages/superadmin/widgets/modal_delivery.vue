@@ -13,12 +13,12 @@
           <div class="row form">
             <div class="col-6">
               <div class="form-group mb-3">
-                <label class="col-form-label">Already Delivered?</label>
+                <label class="col-form-label">配達済み?</label> <br>
                 <switches v-model="info.delivered" type-bold="false" color="success"
                           class="ml-1 mb-0"></switches>
               </div>
               <div class="form-group mb-3">
-                <label>Delivery Date</label>
+                <label>配達日</label>
                 <br/>
                 <date-picker v-model="info.delivered_at" lang="jp"></date-picker>
               </div>
