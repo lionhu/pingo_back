@@ -40,6 +40,18 @@ export const actions = {
       })
     })
   },
+  get_vendor_filtered_rrderitem_list({dispatch, commit}, orderfilter) {
+    return new Promise((resolve, reject) => {
+      orderService.getVendorFilteredOrderitemList(orderfilter).then(res => {
+        let orderitem_count = res.orderitems.length;
+        if (orderitem_count) {
+          resolve(res.orderitems)
+        } else {
+          resolve([])
+        }
+      })
+    })
+  },
 
   load_order({commit}, order_id) {
     if (order_id) {

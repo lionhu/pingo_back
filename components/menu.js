@@ -160,11 +160,6 @@
                 link: "/superadmin/system"
             },
             {
-                id: 72,
-                label: "menuitems.ecommerce.list.products",
-                link: "/superadmin/products"
-            },
-            {
                 id: 73,
                 label: "menuitems.ecommerce.list.shop_faqs",
                 link: "/superadmin/faqs"

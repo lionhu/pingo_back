@@ -1,3 +1,4 @@
+<script src="../../../helpers/fakebackend/order.service.js"></script>
 <script>
 import {mapGetters} from "vuex"
 import {swalService} from "@/helpers/fakebackend/swal.service";
@@ -19,6 +20,8 @@ export default {
     "el-table": () => import('element-ui/lib/table'),
     "el-table-column": () => import('element-ui/lib/table-column'),
     "el-date-picker": () => import('element-ui/lib/date-picker'),
+    "el-select": () => import('element-ui/lib/select'),
+    "el-option": () => import('element-ui/lib/option'),
     DeliveryModal: () => import("../widgets/modal_delivery"),
     PayOrderItemModal: () => import("../widgets/modal_payOrderItemVendor"),
   },
@@ -47,6 +50,7 @@ export default {
         order__ordered_date__gte: this.week_before(),
         order__ordered_date__lte: new Date().toISOString(),
         status: "PROCESSING",
+        item__vendor_id: ""
       },
       isLoading: false,
       multipleSelection: [],
@@ -55,23 +59,26 @@ export default {
       edit_orderitem: {},
       order_id: 0,
       showmodel_delivery: false,
-      vendors: []
+      vendors: [],
     };
   },
-  // watch: {
-  //   orderitems: (newval, oldVal) => {
-  //     console.log("oldVal", oldVal)
-  //     console.log("newval", newval)
-  //     if (newval.length) {
-  //       let _vendors = newval.map((orderitem) => {
-  //         return orderitem.item.vendor.name;
-  //       })
-  //       let unique_vendors = [...new Set(_vendors)];
-  //       console.log(unique_vendors)
-  //       this.vendors = unique_vendors;
-  //     }
-  //   }
-  // },
+  computed: {
+    ...mapGetters({
+      VendorList: "system/getterVendorList"
+    }),
+    vendor_options() {
+      if (this.VendorList.length) {
+        let vendor_select_options = this.VendorList.map(vendor => {
+          return {label: vendor.name, value: vendor.id}
+        })
+        return vendor_select_options;
+      }
+      return []
+    }
+  },
+  mounted() {
+    this.orderfilter.item__vendor_id="";
+  },
   methods: {
     week_before() {
       var dt = new Date();
@@ -82,7 +89,10 @@ export default {
     },
     load_orders() {
       let vm = this;
-      this.$store.dispatch("orders/getSuperadminFilteredOrderitemList", this.orderfilter)
+      if (this.orderfilter.status === "ALL") delete this.orderfilter.status;
+      if (this.orderfilter.item__vendor_id === "") delete this.orderfilter.item__vendor_id;
+      console.log(this.orderfilter)
+      this.$store.dispatch("orders/get_vendor_filtered_rrderitem_list", this.orderfilter)
         .then(orderitems => {
           vm.orderitems = orderitems;
         })
@@ -209,8 +219,18 @@ export default {
               </div>
             </div>
             <div class="row mb-2">
-              <div class="col-12 text-right">
-
+              <div class="col-sm-6">
+                <label for="vendor_selector">ベンダー選択：</label>
+                <el-select id="vendor_selector" v-model="orderfilter.item__vendor_id" placeholder="请选择">
+                  <el-option
+                    v-for="vendor in vendor_options"
+                    :key="vendor.value"
+                    :label="vendor.label"
+                    :value="vendor.value">
+                  </el-option>
+                </el-select>
+              </div>
+              <div class="col-6 text-right">
                 <b-button variant="primary" v-bind:disabled="isLoading" class="btn-rounded ml-1"
                           @click="load_orders">
                   <b-spinner small v-if="isLoading"></b-spinner>&nbsp;&nbsp;Load Data
@@ -232,34 +252,178 @@ export default {
                   type="selection"
                   width="55">
                 </el-table-column>
-                <el-table-column label="ID" sortable prop="id">
-                  <template slot-scope="scope">
-                    {{ '#' + scope.row.id }} <br>
-                    <nuxt-link :to="'/superadmin/orders/' + scope.row.order_id" class="action-iconk">
-                      <b-badge variant="primary" pill v-if="scope.row.order_type==='REGULAR'">R (#{{
-                          scope.row.order_id
-                        }})
-                      </b-badge>
-                      <b-badge variant="warning" pill v-else>P(#{{ scope.row.order_id }})</b-badge>
-                    </nuxt-link>
+
+                <el-table-column type="expand">
+                  <template slot-scope="props">
+                    <div class="row">
+                      <div class="col-lg-8">
+                        <div>
+                          <div class="table-responsive">
+                            <h5 class="font-15 mb-2">注文詳細</h5>
+                            <table class="table table-centered border table-nowrap mb-lg-0">
+                              <thead class="bg-light">
+                              <tr>
+                                <th>Product</th>
+                                <th>Quantity</th>
+                                <th>Price</th>
+                                <th>Total</th>
+                              </tr>
+                              </thead>
+                              <tbody>
+                              <tr>
+                                <td>
+                                  <div class="media align-items-center">
+                                    <div class="mr-3">
+                                      <img :src="props.row.variant.thumbimage" alt="product-img" height="40"/>
+                                    </div>
+                                    <div class="media-body">
+                                      <h6 class="m-0">{{ props.row.item.item_name }}</h6>
+                                      <p class="mb-0">
+                                        {{ props.row.variant.name }} <br>
+                                        (SKU: {{ props.row.variant.sku}})
+                                      </p>
+                                    </div>
+                                  </div>
+                                </td>
+                                <td>{{ props.row.quantity }}</td>
+                                <td>{{ props.row.variant.purchase_price |currency("¥")}}</td>
+                                <td>{{ props.row.total_purchase_price  |currency("¥")}}</td>
+                              </tr>
+                              </tbody>
+                            </table>
+                          </div>
+                        </div>
+                      </div>
+                        <div class="col-lg-4">
+                          <div>
+                            <h5 class="font-15 mb-2">支払情報</h5>
+
+                            <div class="card p-2 mb-lg-0">
+                              <table class="table table-borderless table-sm mb-0">
+                                <tbody>
+                                <tr>
+                                  <th scope="row">支払状態:</th>
+                                  <td>
+                                    <i :class="{'ri-checkbox-circle-fill text-success':props.row.paid,'ri-close-circle-fill text-danger':!props.row.paid}"></i>
+                                  </td>
+                                </tr>
+                                <tr v-if="props.row.paid">
+                                  <th scope="row">支払日 :</th>
+                                  <td>{{props.row.paid_at}}</td>
+                                </tr>
+                                <tr v-if="props.row.paid">
+                                  <th scope="row">詳細:</th>
+                                  <td>{{props.row.paid_info}}</td>
+                                </tr>
+                                </tbody>
+                              </table>
+                            </div>
+                          </div>
+                        </div>
+                    </div>
+                      <div class="row mb-3">
+                        <div class="col-lg-6">
+                          <div>
+                            <h5 class="font-15 mb-2">送付先</h5>
+
+                            <div class="card p-2 mb-lg-0">
+                              <table class="table table-borderless table-sm mb-0">
+                                <tbody>
+                                <tr>
+                                  <th colspan="2">
+                                    <h5 class="font-15 m-0">{{ props.row.json_shippingaddress.name }}</h5>
+                                  </th>
+                                </tr>
+                                <tr>
+                                  <th scope="row">Address:</th>
+                                  <td>〒{{
+                                      props.row.json_shippingaddress.postcode
+                                    }}{{ props.row.json_shippingaddress.state }}
+                                    {{ props.row.json_shippingaddress.city }}
+                                  </td>
+                                </tr>
+                                <tr>
+                                  <th scope="row"></th>
+                                  <td>〒{{
+                                      props.row.json_shippingaddress.town
+                                    }}{{ props.row.json_shippingaddress.address_1 }}
+                                    {{ props.row.json_shippingaddress.address_2 }}
+                                  </td>
+                                </tr>
+                                <tr>
+                                  <th scope="row">Phone :</th>
+                                  <td>{{ props.row.json_shippingaddress.phone }}</td>
+                                </tr>
+                                <tr>
+                                  <th scope="row">Email :</th>
+                                  <td>{{ props.row.json_shippingaddress.email }}</td>
+                                </tr>
+                                </tbody>
+                              </table>
+                            </div>
+                          </div>
+                        </div>
+
+                        <div class="col-lg-6">
+                          <div>
+                            <h5 class="font-15 mb-2">配送情報</h5>
+
+                            <div class="card p-2 mb-lg-0">
+                              <div class="text-center">
+                                <div class="my-2">
+                                  <i class="mdi mdi-truck-fast h1 text-muted"></i>
+                                </div>
+                                <h5><b>UPS Delivery</b></h5>
+                                <div class="mt-2 pt-1">
+                                  <p class="mb-1">
+                                    <span class="font-weight-semibold">Order ID :</span>
+                                    xxxx048
+                                  </p>
+                                  <p class="mb-0">
+                                    <span class="font-weight-semibold">Payment Mode :</span>
+                                    COD
+                                  </p>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
                   </template>
                 </el-table-column>
-                <el-table-column
-                  label="User"
-                  sortable
-                  prop="user">
+
+                <el-table-column label="ID" sortable prop="id">
+                  <template slot-scope="scope">
+                    #_{{ scope.row.id }}
+                  </template>
                 </el-table-column>
                 <el-table-column
                   label="Vendor"
                   sortable
-                  prop="item.vendor.name">
+                  prop="item.vendor.name"  v-if="Object.keys(orderfilter).indexOf('item__vendor_id') === -1">
+                  <template slot-scope="scope">
+                    {{ scope.row.item.vendor.name }}
+                  </template>
+                </el-table-column>
+                <el-table-column
+                  label="顧客"
+                  sortable
+                  prop="json_shippingaddress.name">
+                  <template slot-scope="scope">
+                    {{ scope.row.json_shippingaddress.name }}
+                  </template>
+                </el-table-column>
+                <el-table-column
+                  label="ユーザー"
+                  sortable
+                  prop="user">
                 </el-table-column>
                 <el-table-column
                   label="Date"
                   sortable
                   prop="order_date">
                   <template slot-scope="scope">
-                    {{ scope.row.order_date|short_date }}
+                    {{ scope.row.ordered_date|short_date }}
                   </template>
                 </el-table-column>
                 <el-table-column

@@ -238,7 +238,9 @@ export default {
         confirmButtonText: 'Look up',
         showLoaderOnConfirm: true,
         preConfirm: (parentID) => {
-          let url = `/apiauth/profile/${parentID}/validate_userid/`;
+          console.log("parentID",parentID)
+          if (parseInt(parentID)!==1){
+            let url = `/apiauth/profile/${parentID}/validate_userid/`;
           return this.$axios.post(url)
             .then(response => {
               console.log("response data", response.data)
@@ -252,6 +254,12 @@ export default {
                 `Parent (#${parentID}) does not exist!`
               )
             })
+          }else{
+            Swal.showValidationMessage(
+                "Cannot move under Pingo.JP!"
+              )
+          }
+
         },
         allowOutsideClick: () => !Swal.isLoading()
       }).then((result) => {
@@ -267,9 +275,7 @@ export default {
             confirmButtonText: 'Yes, move it!'
           }).then((result) => {
             if (result.isConfirmed) {
-              console.log(`MoveTo ${user_id} under ${parent.value.id}`)
               let url = `/apiauth/profile/${user_id}/moveto/`;
-              console.log(url, {"parent_id": parent.value.id})
               return this.$axios.post(url, {"parent_id": parent.value.id})
                 .then(response => {
                   if (response.data.result) {

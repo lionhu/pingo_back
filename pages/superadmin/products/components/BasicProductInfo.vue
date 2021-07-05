@@ -102,7 +102,7 @@ export default {
     },
     create_product() {
       if (this.pre_check()) {
-        Swal.fire("error", this.errors)
+        Swal.fire("error", JSON.stringify(this.errors))
       } else {
         this.product.vendor_id = this.product.vendor.id;
         this.product.category_id = this.product.category.id;

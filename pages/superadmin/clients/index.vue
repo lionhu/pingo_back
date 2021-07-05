@@ -35,19 +35,11 @@ export default {
           active: true
         }
       ],
-      totalRows: 1,
-      currentPage: 1,
-      perPage: 5,
-      pageOptions: [5, 10, 25, 50, 100],
-      filter: null,
-      // filterOn: [],
       multipleSelection: [],
       mode: "edit",
       client: {
         "name": "",
         "description": "",
-        "admin_id": 1,
-        "client_superadmin_id": 1
       },
       showEditClientPointPolicyModal:false,
       edit_client:{}
@@ -107,10 +99,8 @@ export default {
       const {value: formValues} = await Swal.fire({
         title: 'Create',
         html:
-          `<input id="swal-input1" placeholder="name" class="swal2-input" value="${client.name}">` +
-          `<input id="swal-input2" placeholder="description" class="swal2-input"  value="${client.description}">` +
-          `<input id="swal-input3" placeholder="client_superadmin_id" class="swal2-input"  value="${client.client_superadmin.id}">` +
-          `<input id="swal-input4" placeholder="admin_id" class="swal2-input"  value="${client.admin.id}">`,
+          `<span>Client Name:</span><input id="swal-input1" placeholder="name" class="swal2-input" value="${client.name}">` +
+          `<span>Description:</span><input id="swal-input2" placeholder="description" class="swal2-input"  value="${client.description}">`,
         focusConfirm: true,
         showCancelButton: true,
         confirmButtonText: `Save`,
@@ -118,18 +108,14 @@ export default {
           return [
             document.getElementById('swal-input1').value,
             document.getElementById('swal-input2').value,
-            document.getElementById('swal-input3').value,
-            document.getElementById('swal-input4').value,
           ]
         }
       })
 
-      if (formValues !== undefined && formValues[0] !== "" && formValues[2] !== "" && formValues[1] !== "") {
+      if (formValues !== undefined && formValues[0] !== "" && formValues[1] !== "") {
         vm.client.id = client.id;
         vm.client.name = formValues[0];
         vm.client.description = formValues[1];
-        vm.client.client_superadmin_id = parseInt(formValues[2]);
-        vm.client.admin_id = parseInt(formValues[3]);
         vm.$store.dispatch("clients/update_client", vm.client).then((response) => {
           if (response.client) {
             let clientIndex = vm.clients.findIndex(client => client.id === response.client.id)
@@ -153,12 +139,12 @@ export default {
     async show_add_client() {
       let vm = this;
       const {value: formValues} = await Swal.fire({
-        title: 'Create',
+        title: '代理店登録',
         html:
-          '<input id="swal-input1" placeholder="name" class="swal2-input">' +
-          '<input id="swal-input2" placeholder="description" class="swal2-input">' +
-          '<input id="swal-input3" placeholder="client_superadmin_id" class="swal2-input">' +
-          '<input id="swal-input4" placeholder="admin_id" class="swal2-input">',
+          '<span>代理店名:</span><input id="swal-input1" placeholder="name" class="swal2-input">' +
+          '<span>説明:</span><input id="swal-input2" placeholder="description" class="swal2-input">' +
+          '<span>Client_Superadmin ID:</span><input id="swal-input3" placeholder="client_superadmin_id" class="swal2-input">' +
+          '<span>Client_Admin ID:</span><input id="swal-input4" placeholder="admin_id" class="swal2-input">',
         focusConfirm: true,
         showCancelButton: true,
         confirmButtonText: `Save`,
@@ -263,35 +249,6 @@ export default {
                 <a href="javascript:void(0)" @click="show_add_client" class="btn btn-danger mb-2"><i
                   class="mdi mdi-plus-circle mr-1"></i>Add Client</a>
               </div>
-              <div class="col-sm-6">
-                <div class="float-sm-right">
-                  <button type="button" class="btn btn-success mb-2 mb-sm-0">
-                    <i class="mdi mdi-cog"></i>
-                  </button>
-                </div>
-              </div>
-              <!-- end col-->
-            </div>
-            <div class="row mb-2">
-              <div class="col-sm-12 col-md-6">
-                <div id="tickets-table_length" class="dataTables_length">
-                  <label class="d-inline-flex align-items-center">
-                    Display&nbsp;
-                    <b-form-select v-model="perPage" size="sm" :options="pageOptions"></b-form-select>&nbsp;Customers
-                  </label>
-                </div>
-              </div>
-              <!-- Search -->
-              <div class="col-sm-12 col-md-6">
-                <div id="tickets-table_filter" class="dataTables_filter text-md-right">
-                  <label class="d-inline-flex align-items-center">
-                    Search:
-                    <b-form-input v-model="filter" type="search" placeholder="Search..."
-                                  class="form-control form-control-sm ml-2"></b-form-input>
-                  </label>
-                </div>
-              </div>
-              <!-- End search -->
             </div>
             <!-- Table -->
             <div class="table-responsive mb-0">
@@ -322,7 +279,10 @@ export default {
                 <el-table-column
                   label="admin">
                   <template slot-scope="scope">
+                    <button class="btn btn-rounded btn-outline-success">
                     <span v-if="scope.row.admin">{{ scope.row.admin.username }}(#{{ scope.row.admin.id }})</span>
+                  </button>
+
                   </template>
                 </el-table-column>
                 <el-table-column

@@ -15,6 +15,8 @@ export default {
     "el-input": () => import('element-ui/lib/input'),
     "el-select": () => import('element-ui/lib/select'),
     "el-option": () => import('element-ui/lib/option'),
+    "el-form-item": () => import('element-ui/lib/form-item'),
+    "el-form": () => import('element-ui/lib/form'),
   },
   computed: {
     ...mapGetters({}),
@@ -210,7 +212,7 @@ export default {
     },
     ResetUserSearch() {
       this.filters.user_id = "";
-      this.selectUser=null;
+      this.selectUser = null;
     },
     handleSelectUser() {
       if (this.filters.user_id !== "") {
@@ -236,44 +238,40 @@ export default {
         <div class="card">
           <div class="card-body">
             <div class="row mb-2">
-              <div class="col-sm-3">
-                <div class="form-group">
-                  <el-input v-model="nDays" id="input_nDays_before" placeholder="n Days Before"></el-input>
-                </div>
-              </div>
-              <div class="offset-sm-3 col-sm-6 text-right">
-                メンバー：
-                <el-select
-                  v-model="filters.user_id"
-                  filterable
-                  remote
-                  reserve-keyword
-                  @change="handleSelectUser"
-                  placeholder="请输入关键词"
-                  :remote-method="querySearchUser"
-                  :loading="loading">
-                  <el-option
-                    v-for="item in userlist"
-                    :key="item.id"
-                    :label="item.username"
-                    :value="item.id">
-                  </el-option>
-                </el-select>
-                <b-button variant="primary" @click="ResetUserSearch">Reset</b-button>
-
-              </div>
-            </div>
-            <div class="row mb-2">
-              <div class="col-sm-6 ">
-                <b-button variant="success" v-bind:disabled="isLoading" class="btn-rounded ml-1"
-                          @click="load_margins_toApproved">
-                  <b-spinner small v-if="isLoading"></b-spinner>
-                  Load Data
-                  <span v-if="selectUser!==null">(User: {{selectUser.username}})</span>
-                </b-button>
-              </div>
-              <div class="col-md-6 text-right">
-                <b-dropdown variant="warning">
+              <el-form ref="form" :inline="true">
+                <el-form-item label="n 日前まで">
+                  <el-input v-model="nDays" type="number" id="input_nDays_before"
+                            placeholder="n Days Before"></el-input>
+                </el-form-item>
+                <el-form-item label="ユーザー：">
+                  <el-select
+                    v-model="filters.user_id"
+                    filterable
+                    remote
+                    reserve-keyword
+                    @change="handleSelectUser"
+                    placeholder="请输入关键词"
+                    :remote-method="querySearchUser"
+                    :loading="loading">
+                    <el-option
+                      v-for="item in userlist"
+                      :key="item.id"
+                      :label="item.username"
+                      :value="item.id">
+                    </el-option>
+                  </el-select>
+                  <b-button variant="primary" @click="ResetUserSearch">Reset</b-button>
+                </el-form-item>
+                <el-form-item >
+                  <b-button variant="success" v-bind:disabled="isLoading" class="btn-rounded ml-1"
+                            @click="load_margins_toApproved">
+                    <b-spinner small v-if="isLoading"></b-spinner>
+                    Load Data
+                    <span v-if="selectUser!==null">(User: {{ selectUser.username }})</span>
+                  </b-button>
+                </el-form-item>
+                <el-form-item >
+                  <b-dropdown variant="warning">
                   <template v-slot:button-content>
                     Margin Batch Action
                   </template>
@@ -282,7 +280,8 @@ export default {
                       Valid</a>
                   </b-dropdown-item>
                 </b-dropdown>
-              </div>
+                </el-form-item>
+              </el-form>
             </div>
           </div>
         </div>

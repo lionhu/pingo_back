@@ -29,6 +29,9 @@ export const mutations = {
 };
 
 export const getters = {
+  getterVendorList: (state) => {
+    return state.vendorlist;
+  },
   getterBackServer: (state) => {
     return state.back_server;
   },

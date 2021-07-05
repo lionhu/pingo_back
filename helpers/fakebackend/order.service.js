@@ -11,7 +11,8 @@ export const orderService = {
   updateOrderItem_BATCH_superadmin,
   getFilteredOrderItems_superadmin,
 
-  getSuperadminFilteredOrderitemList
+  getSuperadminFilteredOrderitemList,
+  getVendorFilteredOrderitemList,
 };
 const urls = {
   "superadmin_list": "/back/store/api/orders_superadmin/",
@@ -20,7 +21,18 @@ const urls = {
   "superadmin_removeorders_batch": "/back/store/api/orders_superadmin/destory_list/",
   "superadmin_orderitem": "/back/store/api/orderitems_superadmin/",
   "superadmin_filter_orderitemlist": "/back/store/api/orderitems_superadmin/filtered_list/",
+  "vendor_filter_orderitemlist": "/back/store/api/orderitems_vendor/list_filter/",
   "superadmin_orderitem_update_batch": "/back/store/api/orderitems_superadmin/update_batch/"
+}
+
+function getVendorFilteredOrderitemList(orderfilter) {
+  let url = urls.vendor_filter_orderitemlist;
+  console.log(orderfilter)
+  return axios.$post(url,{filters:orderfilter})
+    .then(handleResponse)
+    .then(response => {
+      return response;
+    });
 }
 
 function getSuperadminFilteredOrderitemList(orderfilter) {

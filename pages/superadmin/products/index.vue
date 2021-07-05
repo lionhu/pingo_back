@@ -142,7 +142,9 @@ export default {
     },
     SearchProducts() {
       if (this.search_product_key !== "") {
-        var filterOptions = {"item_name__icontains": this.search_product_key};
+        var filterOptions = {
+          "item_name__icontains": this.search_product_key
+        };
         this.load_filtered_products(filterOptions)
       }
     },

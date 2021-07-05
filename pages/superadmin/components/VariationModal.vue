@@ -103,13 +103,24 @@ export default {
       <div class="row mt-md-2">
         <div class="col-md-6">
           <div class="form-group">
-            <label for="field-inventory" class="control-label">Active
+            <label for="field-is_valid" class="control-label">Active
               <span class="text-danger">*</span>
             </label> <br>
 
             <switches v-model="edit_variation.point_rule.is_valid" id="field-is_valid" type-bold="false"
                       color="warning"
                       class="ml-1 my-auto"></switches>
+          </div>
+        </div>
+      </div>
+      <div class="row mt-md-2">
+        <div class="col-md-6">
+          <div class="form-group">
+            <label for="product-sku" class="control-label">SKU
+              <span class="text-danger">*</span>
+            </label>
+            <input type="text" v-model="edit_variation.sku" id="product-sku" class="form-control"
+                   :placeholder="edit_variation.sku"/>
           </div>
         </div>
         <div class="col-md-6">
