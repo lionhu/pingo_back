@@ -4,13 +4,13 @@
       id="modal-delivery"
       size="lg"
       centered
-      :title="'Delivery information  #'+orderitem.id"
+      title="配達情報"
       :hide-footer="true"
       v-if="openDeliveryModal">
 
       <div class="card">
         <div class="card-body">
-          <div class="row">
+          <div class="row form">
             <div class="col-6">
               <div class="form-group mb-3">
                 <label class="col-form-label">Already Delivered?</label>
@@ -21,6 +21,12 @@
                 <label>Delivery Date</label>
                 <br/>
                 <date-picker v-model="info.delivered_at" lang="jp"></date-picker>
+              </div>
+              <div class="form-group mb-3">
+                <h5>配達対象</h5>
+                <ul>
+                  <li v-for="item in orderitem_ids" :key="item">{{ item }}</li>
+                </ul>
               </div>
             </div>
             <div class="col-6 border-left">
@@ -77,7 +83,7 @@
 </template>
 <script>
 export default {
-  props: ['openDeliveryModal', "orderitem", "order_id"],
+  props: ['openDeliveryModal', "orderitem_ids", "orderitem"],
   data() {
     return {
       info: {
@@ -100,8 +106,10 @@ export default {
   },
   watch: {
     openDeliveryModal: function (newvalue, oldvalue) {
-      if (newvalue) {
+      if (newvalue && this.orderitem !== null) {
         this.info.delivered = this.orderitem.delivered;
+        var _day=new Date(this.orderitem.delivered_at);
+        this.info.delivered_at = this.orderitem.delivered_at!==null?new Date(this.orderitem.delivered_at):new Date();
         this.info.delivery_info.track_link = this.orderitem.delivery_info.track_link;
         this.info.delivery_info.track_no = this.orderitem.delivery_info.track_no;
         this.info.delivery_info.logistic_name = this.orderitem.delivery_info.logistic_name;
@@ -116,13 +124,15 @@ export default {
     update_orderitem() {
       var vm = this;
       var orderitem_ids = [];
-      orderitem_ids.push(this.orderitem.id);
-
+      if (this.orderitem !== null){
+        orderitem_ids.push(this.orderitem.id);
+      }else{
+        orderitem_ids=this.orderitem_ids;
+      }
       var updateinfo = {
-        order_id: this.order_id,
         orderitem_ids: orderitem_ids,
         update_fields: ["delivery"],
-        delivered_at: this.info.delivered_at!==""?this.info.delivered_at.toISOString():new Date(),
+        delivered_at: this.info.delivered_at !== "" ? this.info.delivered_at.toISOString() : new Date(),
         delivered: this.info.delivered,
         delivery_info: {
           track_no: this.info.delivery_info.track_no,
@@ -130,22 +140,14 @@ export default {
           logistic_name: this.info.delivery_info.logistic_name
         }
       };
-
       this.$store.dispatch("orders/updateOrderItemInfo_superadmin", updateinfo)
         .then(response => {
           if (response) {
             vm.updating = false;
-            vm.info = {
-              update_fields: ["delivery"],
-              delivered_at: new Date(),
-              delivered: false,
-              delivery_info: {
-                track_no: "",
-                track_link: "",
-                logistic_name: "",
-              }
-            };
-            vm.$emit("updateResult", {result: true, order: response.order, orderitems: response.orderitems})
+            vm.$emit("updateResult", {
+              result: true,
+              updated_orderitems: response.orderitems
+            })
             vm.$bvModal.hide("modal-delivery")
           }
         });
