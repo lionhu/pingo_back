@@ -19,6 +19,7 @@ export default {
   },
   components: {
     DeliveryModal: () => import("../widgets/modal_delivery"),
+    modalUpdateVendorPayment: () => import("../widgets/modalUpdateVendorPayment"),
     "el-table": () => import('element-ui/lib/table'),
     "el-table-column": () => import('element-ui/lib/table-column'),
   },
@@ -26,6 +27,7 @@ export default {
     if (parseInt(params.id) > 0) {
       let url = `/back/store/api/orders_superadmin/${params.id}/`
       let orderDetail = await axios.get(url).then((response) => {
+        console.log("asyncData",response)
         if (response.data.result) {
           return orderDetail = response.data.data
         } else {
@@ -52,7 +54,9 @@ export default {
         }
       ],
       showmodel_delivery: false,
-      edit_orderitem: {}
+      showmodel_payvendor: false,
+      edit_orderitem: {},
+      multipleSelection: []
     };
   },
   middleware: ['router-auth', 'router-superadmin'],
@@ -82,12 +86,12 @@ export default {
     }
   },
   mounted() {
-    this.load_order(this.$route.params.id)
+    // this.load_order(this.$route.params.id)
   },
   methods: {
-    load_order(order_id) {
-      this.$store.dispatch("orders/load_order", order_id)
-    },
+    // load_order(order_id) {
+    //   this.$store.dispatch("orders/load_order", order_id)
+    // },
     getImageUrl(path) {
       return this.backend_server + path
     },
@@ -98,8 +102,15 @@ export default {
       }
       this.$store.dispatch("orders/updateOrderItemStatus_superadmin", updateinfo);
     },
-    showDeliveryModal(orderitem) {
-      this.edit_orderitem = orderitem
+    showDeliveryModal(mode, orderitem) {
+      console.log(mode, orderitem)
+      if (mode==="single"){
+        this.multipleSelection=[];
+        this.edit_orderitem=orderitem;
+        this.multipleSelection.push(orderitem.id)
+      }else{
+        this.edit_orderitem= null
+      }
       this.showmodel_delivery = true
     },
     UpdateOrderItem(response) {
@@ -170,6 +181,45 @@ export default {
           }
         })
     },
+    show_PayVendorModal(mode, orderitem) {
+      if (mode ==="single"){
+        this.multipleSelection=[];
+        this.edit_orderitem=orderitem;
+        this.multipleSelection.push(orderitem.id)
+      }else{
+        this.edit_orderitem=null;
+      }
+      this.showmodel_payvendor = true
+    },
+    update_vendor_payment_result(info) {
+      console.log(info)
+    },
+    handleSelectionChange(val) {
+      var kl = val.map(function (order) {
+        return order.id
+      });
+      this.multipleSelection = kl;
+    },
+    UpdateOrderItemResult(info) {
+      let vm=this;
+      console.log("info", info)
+      let new_orderitems=info.updated_orderitems;
+      if (info.result) {
+        new_orderitems.forEach(newitem=>{
+          let itemIndex=vm.order.orderitems.findIndex(item=>item.id ===newitem.id)
+          if (itemIndex>-1){
+            vm.order.orderitems[itemIndex].delivered=newitem.delivered;
+            vm.order.orderitems[itemIndex].delivered_at=newitem.delivered_at;
+            vm.order.orderitems[itemIndex].delivery_info=newitem.delivery_info;
+
+            vm.order.orderitems[itemIndex].paid=newitem.paid;
+            vm.order.orderitems[itemIndex].paid_at=newitem.paid_at;
+            vm.order.orderitems[itemIndex].paid_info=newitem.paid_info;
+          }
+        })
+        swalService.showModal("Updated Successfully!", "Refresh to view", "success")
+      }
+    }
   }
 
 };
@@ -269,20 +319,48 @@ export default {
                       <el-table
                         class="table table-centered border table-nowrap mb-lg-0"
                         :data="order.orderitems"
-                        style="width: 100%">
+                        style="width: 100%"
+                        @selection-change="handleSelectionChange">
+
+                        <el-table-column
+                          type="selection"
+                          width="30">
+                        </el-table-column>
                         <el-table-column type="expand">
                           <template slot-scope="props">
                             <div class="row mb-3">
                               <div class="col-lg-6">
 
-                              <div class="media-body">
-                                <h5 class="m-0">商品名：</h5>
-                                <p class="mb-0">{{ props.row.item.item_name }}(#{{ props.row.id }})</p>
-                              </div>
+                                <div class="card">
+                                  <div class="card-body">
+
+                                  <h5 class="m-0">商品名：</h5>
+                                  <p class="mb-0">
+                                    {{ props.row.item.item_name }} <br>
+                                    orderitem id:#{{ props.row.id }} <br>
+                                    SKU: {{props.row.sku}}
+                                  </p>
+                                  </div>
+                                </div>
 
                               </div>
                               <div class="col-lg-6">
-
+                                <div>
+                                  <h6 class="font-15 mb-2">ベンダー情報</h6>
+                                  <div class="card p-2 mb-lg-0">
+                                    <div class="card-body">
+                                      <p>
+                                        Name: {{props.row.item.vendor.name}} <br>
+                                        Phone: {{props.row.item.vendor.phone}} <br>
+                                        Email: {{props.row.item.vendor.email}} <br>
+                                      </p>
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                            <div class="row mb-3">
+                              <div class="col-lg-6">
                                 <div>
                                   <h4 class="font-15 mb-2">配送情報</h4>
 
@@ -294,31 +372,32 @@ export default {
                                       <h5><b>{{ props.row.delivery_info.logistic_name }}</b></h5>
                                       <div class="mt-2 pt-1">
                                         <p class="mb-1">
-                                          <span
-                                            class="font-weight-semibold">Trak No: {{
-                                              props.row.delivery_info.track_no
-                                            }}</span>
+                                          <span class="font-weight-semibold">Trak No: {{ props.row.delivery_info.track_no }}</span>
                                         </p>
                                         <p class="mb-0">
-                                          <span
-                                            class="font-weight-semibold">Delivery Date :{{
-                                              props.row.delivered_at|short_date
-                                            }}</span>
+                                          <span class="font-weight-semibold">Delivery Date :{{ props.row.delivered_at|short_date }}</span>
                                         </p>
                                       </div>
                                     </div>
                                   </div>
-<!--                                  <div class="card p-2 mb-lg-0" v-else>-->
-<!--                                    <div class="text-center">-->
-<!--                                      <div class="my-2">-->
-<!--                                        <i class="fe-track font-16 text-muted"></i>-->
-<!--                                      </div>-->
-<!--                                    </div>-->
-<!--                                  </div>-->
-                                  <div class="card-body">
-                                    <a href="javascript:void(0);" v-b-modal.modal-delivery class="card-link text-custom"
-                                       @click="showDeliveryModal(props.row)">情報更新</a>
-                                    <!--                                    <a href="javascript:void(0);" class="card-link text-custom">Another link</a>-->
+                                </div>
+                              </div>
+                              <div class="col-lg-6">
+                                <div>
+                                  <h4 class="font-15 mb-2">支払情報</h4>
+
+                                  <div class="card p-2 mb-lg-0" v-if="props.row.paid">
+                                    <div class="text-center">
+                                      <h5><b>{{ props.row.paid_at|short_date}}</b></h5>
+                                      <div class="mt-2 pt-1">
+                                        <p class="mb-1">
+                                          <span class="font-weight-semibold">Method: {{props.row.paid_info.method}}</span>
+                                        </p>
+                                        <p class="mb-0">
+                                          <span class="font-weight-semibold">Memo :{{props.row.paid_info.memo}}</span>
+                                        </p>
+                                      </div>
+                                    </div>
                                   </div>
                                 </div>
                               </div>
@@ -373,20 +452,23 @@ export default {
                         <el-table-column
                           label="配送">
                           <template slot-scope="scope">
+                            <a href="javascript:void(0);" v-b-modal:modal-delivery
+                               @click="showDeliveryModal('single',scope.row)">
                               <span class="badge"
                                     :class="{'text-danger': !scope.row.delivered ,
                                     'text-success': scope.row.delivered }">
                                 <i class="fe-truck font-16"></i>
                               </span>
+                            </a>
                           </template>
                         </el-table-column>
                         <el-table-column
                           label="支払">
                           <template slot-scope="scope">
-                              <span class="badge"
-                                    :class="{'text-danger': !scope.row.paid ,'text-success': scope.row.paid}">
-                                <i class="fas fa-cash-register font-16"></i>
-                              </span>
+                            <a href="javascript:void(0);" v-b-modal:modal-update-vendor-payment @click="show_PayVendorModal('single',scope.row)">
+                              <b-badge variant="success" class="text-white" pill v-if="scope.row.paid">Paid</b-badge>
+                              <b-badge variant="danger" class="text-white" pill v-else>Unpaid</b-badge>
+                            </a>
                           </template>
                         </el-table-column>
                       </el-table>
@@ -482,7 +564,7 @@ export default {
                     <td class="text-right">
                       <span class="d-block ">{{ order.Total|currency("¥") }}</span>
                       <div v-if="pointUSE.apply_point">
-                        <p><i class="ri-bank-card-line text-success"></i>:{{ order.chargeAmount |currency("¥")}}<br>
+                        <p><i class="ri-bank-card-line text-success"></i>:{{ order.chargeAmount |currency("¥") }}<br>
                           <i class="ri-refund-2-fill text-danger"></i>:{{ pointUSE.use_point|currency("¥") }}</p>
                       </div>
                     </td>
@@ -558,7 +640,10 @@ export default {
       </div>
     </div>
     <!-- end row -->
-    <DeliveryModal :openDeliveryModal="showmodel_delivery" :order_id="order.id"
-                   :orderitem="edit_orderitem" @updateResult="UpdateOrderItem"></DeliveryModal>
+    <DeliveryModal :openDeliveryModal="showmodel_delivery" :orderitem_ids="multipleSelection"
+                   :orderitem="edit_orderitem" @updateResult="UpdateOrderItemResult"></DeliveryModal>
+
+    <modalUpdateVendorPayment :openModal="showmodel_payvendor" :orderitem_ids="multipleSelection" :orderitem="edit_orderitem"
+                              @updateResult="UpdateOrderItemResult"></modalUpdateVendorPayment>
   </div>
 </template>

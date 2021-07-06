@@ -107,21 +107,19 @@ export default {
       this.showmodel_delivery = !this.showmodel_delivery
 
     },
-    UpdateOrderItemResult({result, updated_orderitems}) {
-      console.log("result", updated_orderitems)
-      if (result) {
-
-          swalService.showModal("Updated Successfully!", "Refresh to view","success")
-          // window.location.reload();
-        // var updated_ids=[];
-        // updated_orderitems.forEach(orderItem => {
-        //   let itemIndex = this.orderitems.findIndex(item => item.id === orderItem.id);
-        //   if (itemIndex > -1) {
-        //     this.orderitems.splice(itemIndex, 1, orderItem);
-        //     updated_ids.push(orderItem.id)
-        //   }
-        //   swalService.showModal("Updated Successfully!", `items ${JSON.stringify(updated_ids)} has been updated!`,"success")
-        // })
+    UpdateOrderItemResult(info) {
+      console.log("result", info)
+      if (info.result) {
+        var updated_ids=[];
+        info.updated_orderitems.forEach(neworderItem => {
+          let itemIndex = this.orderitems.findIndex(item => item.id === neworderItem.id);
+          if (itemIndex > -1) {
+            this.orderitems[itemIndex].delivered=neworderItem.delivered;
+            this.orderitems[itemIndex].delivered_at=neworderItem.delivered_at;
+            this.orderitems[itemIndex].delivery_info=neworderItem.delivery_info;
+          }
+          swalService.showModal("Updated Successfully!", `items has been updated!`,"success")
+        })
       }
     },
     UpdateOrderItems(res) {

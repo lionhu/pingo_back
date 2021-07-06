@@ -6,7 +6,7 @@
       centered
       title="支払ステータス"
       :hide-footer="true"
-      v-if="openPaymentStatusModal">
+      v-if="openModal">
       <div class="card">
         <div class="card-body">
           <div class="row">
@@ -57,7 +57,7 @@
 <script>
 export default {
   name: "modal_update_payment",
-  props: ['openPaymentStatusModal', "order_ids"],
+  props: ['openModal', "order_ids"],
   data() {
     return {
       result: false,
@@ -69,7 +69,7 @@ export default {
   watch: {
     openPaymentStatusModal: function (newvalue, oldvalue) {
       if (newvalue !== null) {
-        console.log("openPaymentStatusModal: ", newvalue)
+        console.log("openModal: ", newvalue)
       }
     }
   },

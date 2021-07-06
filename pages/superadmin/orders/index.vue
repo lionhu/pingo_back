@@ -19,8 +19,7 @@ export default {
     "el-table": () => import('element-ui/lib/table'),
     "el-table-column": () => import('element-ui/lib/table-column'),
     "el-date-picker": () => import('element-ui/lib/date-picker'),
-    PayVendorModal: () => import("../widgets/modal_payVendor"),
-    UpdatePaymentModal: () => import("../widgets/modalUpdatePayment")
+    UpdatePaymentModal: () => import("../widgets/modalUpdatePayment"),
   },
   data() {
     return {
@@ -51,6 +50,7 @@ export default {
       multipleSelection: [],
       showmodel_payvendor: false,
       showmodal_payment_status: false,
+      showmodal_vendor_payment: false,
       order_type: ""
     };
   },
@@ -63,9 +63,6 @@ export default {
     ...mapGetters({
       "orders": "orders/gettersSuperadminOrderList"
     }),
-    // display_list() {
-    //   return this.orders.filter(order => order.type === this.order_type)
-    // }
   },
   methods: {
     week_before() {
@@ -76,8 +73,6 @@ export default {
       this.orderfilter.status = status;
     },
     load_orders() {
-      // this.orderfilter.ordered_date__gte = this.orderfilter.ordered_date__gte.split("+")[0].replace("T", " ")
-      // this.orderfilter.ordered_date__lte = this.orderfilter.ordered_date__lte.split("+")[0].replace("T", " ")
       this.$store.dispatch("orders/load_filteredlist_superadmin", this.orderfilter)
     },
     removeOrder(order_id) {
@@ -156,8 +151,7 @@ export default {
       } else {
         this.showmodal_payment_status = false;
       }
-    }
-
+    },
   },
   middleware: ['router-auth', 'router-superadmin'],
 };
@@ -182,14 +176,11 @@ export default {
                     <i class="mdi mdi-chevron-down"></i>
                   </template>
                   <b-dropdown-item v-for="item in status_options" :key="item.value" @click="change_status(item.value)">
-                    {{
-                      item.label
-                    }}
+                    {{item.label}}
                   </b-dropdown-item>
                 </b-dropdown>
               </div>
               <div class="col-sm-6 text-right">
-
                 <b-dropdown variant="warning" v-model="orderfilter.status">
                   <template v-slot:button-content>
                     Order Batch Action
@@ -217,8 +208,7 @@ export default {
               <div class="col-md-6">
                 <div class="form-group">
                   <label id="fromDate_picker_label">
-                    From:
-                    <span class="text-danger">*</span>
+                    From:<span class="text-danger">*</span>
                   </label>
                   <el-date-picker
                     id="fromDate_picker"
@@ -232,8 +222,7 @@ export default {
               <div class="col-md-6 text-right">
                 <div class="form-group">
                   <label id="toDate_picker_label">
-                    TO:
-                    <span class="text-danger">*</span>
+                    TO:<span class="text-danger">*</span>
                   </label>
                   <el-date-picker
                     id="toDate_picker"
@@ -247,7 +236,6 @@ export default {
             </div>
             <div class="row mb-2">
               <div class="col-12 text-right">
-
                 <b-button variant="primary" v-bind:disabled="isLoading" class="btn-rounded ml-1"
                           @click="load_orders">
                   <b-spinner small v-if="isLoading"></b-spinner>&nbsp;&nbsp;Load Data
@@ -305,17 +293,12 @@ export default {
                     {{ scope.row.ordered_date | short_date }}
                   </template>
                 </el-table-column>
-                <el-table-column
-                  label="Total"
-                  sortable
-                  prop="TaxedTotal">
+                <el-table-column label="Total" sortable prop="TaxedTotal">
                   <template slot-scope="scope">
                     {{ scope.row.Total | currency("¥") }}
                   </template>
                 </el-table-column>
-
-                <el-table-column
-                  label="顧客">
+                <el-table-column label="顧客">
                   <template slot-scope="scope">
                     <a href="javascript:void(0)" v-b-modal:modal-update-payment
                        @click="update_order_payment_status('single',scope.row.id)"
@@ -332,21 +315,14 @@ export default {
                     </b-badge>
                   </template>
                 </el-table-column>
-                <el-table-column
-                  label="ベンダー">
+                <el-table-column label="ベンダー">
                   <template slot-scope="scope">
-                    <b-badge variant="danger" class="text-white" pill v-if="!isOrderPaid(scope.row)">
-                      Unpaid
-                    </b-badge>
-                    <b-badge variant="success" class="text-white" pill v-else>
-                      Paid
-                    </b-badge>
+                      <b-badge variant="danger" class="text-white" pill v-if="!isOrderPaid(scope.row)">Unpaid</b-badge>
+                      <b-badge variant="success" class="text-white" pill v-else>Paid</b-badge>
                   </template>
                 </el-table-column>
-                <el-table-column
-                  label="配送">
+                <el-table-column label="配送">
                   <template slot-scope="scope">
-                    <!--                    <a href="javascript:void(0);" @click="updateOrderStatus(scope.row.id)">-->
                     <span class="badge badge-soft-danger text-danger" v-if="!isOrderDelivered(scope.row)">
                         <i class="fe-truck font-16"></i>
                       </span>
@@ -380,8 +356,7 @@ export default {
         </div>
       </div>
     </div>
-    <PayVendorModal :openModal="showmodel_payvendor" :orders="multipleSelection"></PayVendorModal>
-    <UpdatePaymentModal :openPaymentStatusModal="showmodal_payment_status" :order_ids="multipleSelection"
+    <UpdatePaymentModal :openModal="showmodal_payment_status" :order_ids="multipleSelection"
                         @updateResult="update_order_payment_status_result"></UpdatePaymentModal>
   </div>
 </template>

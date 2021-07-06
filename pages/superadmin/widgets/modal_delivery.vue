@@ -1,3 +1,4 @@
+<script src="../../../store/orders.js"></script>
 <template>
   <div>
     <b-modal
