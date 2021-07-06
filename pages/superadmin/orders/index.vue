@@ -19,7 +19,8 @@ export default {
     "el-table": () => import('element-ui/lib/table'),
     "el-table-column": () => import('element-ui/lib/table-column'),
     "el-date-picker": () => import('element-ui/lib/date-picker'),
-    PayVendorModal: () => import("../widgets/modal_payVendor")
+    PayVendorModal: () => import("../widgets/modal_payVendor"),
+    UpdatePaymentModal: () => import("../widgets/modalUpdatePayment")
   },
   data() {
     return {
@@ -49,6 +50,7 @@ export default {
       isLoading: false,
       multipleSelection: [],
       showmodel_payvendor: false,
+      showmodal_payment_status: false,
       order_type: ""
     };
   },
@@ -61,9 +63,9 @@ export default {
     ...mapGetters({
       "orders": "orders/gettersSuperadminOrderList"
     }),
-    display_list() {
-      return this.orders.filter(order => order.type === this.order_type)
-    }
+    // display_list() {
+    //   return this.orders.filter(order => order.type === this.order_type)
+    // }
   },
   methods: {
     week_before() {
@@ -139,8 +141,21 @@ export default {
       }
       return result;
     },
-    setOrderType(selecttype) {
-      this.order_type = selecttype;
+    update_order_payment_status(mode, ids) {
+      var order_ids = [];
+      if (mode === "single") {
+        order_ids.push(ids);
+        this.multipleSelection = order_ids;
+      }
+      console.log("update_order_payment_status order_ids", this.multipleSelection)
+      this.showmodal_payment_status = true;
+    },
+    update_order_payment_status_result(info) {
+      if (info.result) {
+        this.showmodal_payment_status = false;
+      } else {
+        this.showmodal_payment_status = false;
+      }
     }
 
   },
@@ -180,6 +195,10 @@ export default {
                     Order Batch Action
                     <i class="mdi mdi-chevron-down"></i>
                   </template>
+                  <b-dropdown-item>
+                    <a href="javascript:void(0);" v-b-modal:modal-update-payment
+                       @click="update_order_payment_status('multiple',null)">Update Order Payment Status</a>
+                  </b-dropdown-item>
                   <b-dropdown-item>
                     <a href="javascript:void(0);" v-b-modal.modal-payvendor @click="batch_payVendor">VendorPay
                       Selected</a>
@@ -240,14 +259,9 @@ export default {
 
         <div class="card">
           <div class="card-body">
-            <div class="d-flex justify-content-between">
-              <b-button variant="primary" @click="setOrderType('REGULAR')">Normal Orders</b-button>
-              <span>{{ display_list.length }} orders</span>
-              <b-button variant="success" class="float-right" @click="setOrderType('PINGO')">Pingo Orders</b-button>
-            </div>
             <div class="table-responsive mb-0">
               <el-table
-                :data="display_list"
+                :data="orders"
                 style="width: 100%"
                 @selection-change="handleSelectionChange"
               >
@@ -261,9 +275,9 @@ export default {
                     <div v-if="props.row.message!==''">
                       <h4>Message</h4>
                       <blockquote class="blockquote">
-                        <p class="mb-0">{{props.row.message}}</p>
+                        <p class="mb-0">{{ props.row.message }}</p>
                         <footer class="blockquote-footer">
-                          From <cite title="Source Title">{{props.row.user}}</cite>
+                          From <cite title="Source Title">{{ props.row.user }}</cite>
                         </footer>
                       </blockquote>
                     </div>
@@ -273,21 +287,22 @@ export default {
                   <template slot-scope="scope">
                     {{ '#' + scope.row.id }}<i class=" ri-message-2-fill text-danger" v-if="scope.row.message!==''"></i>
                     <br>
-                    <b-badge variant="primary" pill v-if="scope.row.type==='REGULAR'">REGULAR</b-badge>
-                    <b-badge variant="warning" pill v-else>Pingo</b-badge>
+                    <b-badge variant="primary" pill>{{ scope.row.status }}</b-badge>
                   </template>
                 </el-table-column>
                 <el-table-column
                   label="User"
                   sortable
+                  width="100"
                   prop="user">
                 </el-table-column>
                 <el-table-column
                   label="Date"
                   sortable
+                  width="100"
                   prop="ordered_date">
                   <template slot-scope="scope">
-                    {{ scope.row.ordered_date | short_datetime }}
+                    {{ scope.row.ordered_date | short_date }}
                   </template>
                 </el-table-column>
                 <el-table-column
@@ -300,26 +315,36 @@ export default {
                 </el-table-column>
 
                 <el-table-column
-                  label="Paid">
+                  label="顧客">
                   <template slot-scope="scope">
-
-                      <span class="badge badge-soft-danger text-danger" v-if="!scope.row.is_paid">
-                        <i class="fe-gift font-16"></i>
-                      </span>
-                    <span class="badge badge-soft-success text-success" v-else>
-                        <i class="fe-gift font-16"></i>
-                      </span>
-
-                    <span class="badge badge-soft-danger text-danger" v-if="!isOrderPaid(scope.row)">
-                        <i class="fe-home font-16"></i>
-                      </span>
-                    <span class="badge badge-soft-success text-success" v-else>
-                        <i class="fe-home font-16"></i>
-                      </span>
+                    <a href="javascript:void(0)" v-b-modal:modal-update-payment
+                       @click="update_order_payment_status('single',scope.row.id)"
+                       v-if="scope.row.payment_status==='APPROVED'">
+                      <b-badge variant="warning" class="text-white" pill v-if="scope.row.payment_status==='APPROVED'">
+                        APPROVED
+                      </b-badge>
+                    </a>
+                    <b-badge variant="success" class="text-white" pill v-if="scope.row.payment_status==='COMPLETED'">
+                      COMPLETED
+                    </b-badge>
+                    <b-badge variant="danger" class="text-white" pill v-if="scope.row.payment_status==='CANCELED'">
+                      CANCELED
+                    </b-badge>
                   </template>
                 </el-table-column>
                 <el-table-column
-                  label="Delivered">
+                  label="ベンダー">
+                  <template slot-scope="scope">
+                    <b-badge variant="danger" class="text-white" pill v-if="!isOrderPaid(scope.row)">
+                      Unpaid
+                    </b-badge>
+                    <b-badge variant="success" class="text-white" pill v-else>
+                      Paid
+                    </b-badge>
+                  </template>
+                </el-table-column>
+                <el-table-column
+                  label="配送">
                   <template slot-scope="scope">
                     <!--                    <a href="javascript:void(0);" @click="updateOrderStatus(scope.row.id)">-->
                     <span class="badge badge-soft-danger text-danger" v-if="!isOrderDelivered(scope.row)">
@@ -328,20 +353,6 @@ export default {
                     <span class="badge badge-soft-success text-primary" v-else>
                         <i class="fe-truck font-16"></i>
                       </span>
-                    <!--                    </a>-->
-                  </template>
-                </el-table-column>
-                <el-table-column
-                  label="Status"
-                  sortable
-                  prop="status">
-                  <template slot-scope="scope">
-                    <!--                    <a href="javascript:void(0);" @click="updateOrderStatus(scope.row.id)">-->
-                    <span class="badge"
-                          :class="{'badge-soft-danger': scope.row.status === 'NEW',
-                          'badge-soft-success': scope.row.status === 'FINISHED'}">
-                      {{ scope.row.status }}
-                    </span>
                     <!--                    </a>-->
                   </template>
                 </el-table-column>
@@ -355,7 +366,8 @@ export default {
 
                       </li>
                       <li class="list-inline-item" v-if="!scope.row.is_paid">
-                        <a href="javascript:void(0);" class="action-icon text-danger" @click="removeOrder(scope.row.id)">
+                        <a href="javascript:void(0);" class="action-icon text-danger"
+                           @click="removeOrder(scope.row.id)">
                           <i class="fe-trash"></i></a>
                       </li>
                     </ul>
@@ -369,5 +381,7 @@ export default {
       </div>
     </div>
     <PayVendorModal :openModal="showmodel_payvendor" :orders="multipleSelection"></PayVendorModal>
+    <UpdatePaymentModal :openPaymentStatusModal="showmodal_payment_status" :order_ids="multipleSelection"
+                        @updateResult="update_order_payment_status_result"></UpdatePaymentModal>
   </div>
 </template>

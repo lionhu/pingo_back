@@ -58,12 +58,27 @@ export const actions = {
       commit("setOrder", order_id)
     }
   },
+
   updateOrder_superadmin({dispatch, commit}, orderInfo) {
     orderService.updateOrder_superadmin(orderInfo).then(res => {
       console.log(res)
       commit("updateOrder", res.order)
     })
   },
+
+  updateOrder_PaymentStatus_superadmin_BATCH({commit},updateinfo){
+      orderService.updateOrder_BATCH_superadmin(updateinfo).then((res) => {
+        console.log("updateOrder_PaymentStatus_superadmin_BATCH",res)
+        if (res.orders) {
+          for (let order of res.orders) {
+            commit("updateOrder", order);
+            console.log("update order", order.id)
+          }
+          swalService.showModal(`Status Update! `, `orders: #${JSON.stringify(updateinfo.order_ids)} <br>  status: ${updateinfo.payment_status} updated!`, "success")
+        }
+      })
+  },
+
   async updateOrderStatus_superadmin({commit}, orders) {
     const {value: status} = await Swal.fire({
       title: 'Select Status',
@@ -201,6 +216,7 @@ export const actions = {
       })
     })
   },
+
   removeOrder_superadmin({commit}, order_id) {
     Swal.fire({
       title: 'Are you sure?',
@@ -222,6 +238,7 @@ export const actions = {
       }
     })
   },
+
   batch_removeOrders_superadmin({commit}, order_ids) {
     Swal.fire({
       title: 'Are you sure?',
